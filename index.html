@@ -1258,37 +1258,56 @@
     const GAS_SECURITY_API_URL = "https://script.google.com/macros/s/AKfycbzCp0MWztzqkntlpClAL9GNettGLCbe5utg9XbL3H3wDhynV5ksyhUx8d7u8P6D-bXe/exec";
 
     if (typeof google === 'undefined' || !google.script) {
+      // Deklarasi Blueprint Konstruktor Penampung Instans Terisolasi
+      function GoogleScriptRunInstance(successCb, failureCb) {
+        this._successCb = successCb;
+        this._failureCb = failureCb;
+      }
+
+      GoogleScriptRunInstance.prototype.withSuccessHandler = function(cb) {
+        this._successCb = cb;
+        return this;
+      };
+
+      GoogleScriptRunInstance.prototype.withFailureHandler = function(cb) {
+        this._failureCb = cb;
+        return this;
+      };
+
+      GoogleScriptRunInstance.prototype._executeGet = function(action) {
+        fetch(`${GAS_SECURITY_API_URL}?action=${action}`, { redirect: 'follow' })
+          .then(res => res.json())
+          .then(d => { if (this._successCb) this._successCb(d); })
+          .catch(err => { if (this._failureCb) this._failureCb(err); });
+      };
+
+      GoogleScriptRunInstance.prototype._executePost = function(action, args) {
+        fetch(GAS_SECURITY_API_URL, { method: 'POST', body: JSON.stringify({ action: action, args: args }), redirect: 'follow' })
+          .then(res => res.json())
+          .then(d => { if (this._successCb) this._successCb(d.result); })
+          .catch(err => { if (this._failureCb) this._failureCb(err); });
+      };
+
+      // Registrasi Pemetaan Fungsi Operasional PWA Terisolasi
+      GoogleScriptRunInstance.prototype.getDivisionsFromUsers = function() { this._executeGet('getDivisionsFromUsers'); };
+      GoogleScriptRunInstance.prototype.getActivities = function() { this._executeGet('getActivities'); };
+      GoogleScriptRunInstance.prototype.getArchivedActivities = function() { this._executeGet('getArchivedActivities'); };
+      GoogleScriptRunInstance.prototype.getRekapAggregation = function() { this._executeGet('getRekapAggregation'); };
+      GoogleScriptRunInstance.prototype.getChatMessages = function() { this._executeGet('getChatMessages'); };
+      GoogleScriptRunInstance.prototype.loginUser = function(form) { this._executePost('loginUser', [form]); };
+      GoogleScriptRunInstance.prototype.saveActivity = function(payload) { this._executePost('saveActivity', [payload]); };
+      GoogleScriptRunInstance.prototype.deleteActivity = function(id) { this._executePost('deleteActivity', [id]); };
+      GoogleScriptRunInstance.prototype.sendMessage = function(sender, msg) { this._executePost('sendMessage', [sender, msg]); };
+      GoogleScriptRunInstance.prototype.changeOwnPassword = function(user, oldP, newP) { this._executePost('changeOwnPassword', [user, oldP, newP]); };
+      GoogleScriptRunInstance.prototype.addNewUser = function(admin, payload) { this._executePost('addNewUser', [admin, payload]); };
+      GoogleScriptRunInstance.prototype.verifyLeaderPIN = function(pin) { this._executePost('verifyLeaderPIN', [pin]); };
+
+      // Hubungkan ke Core Object Window dengan Akses Rantai Baru
       window.google = {
         script: {
           run: {
-            _successHandler: null,
-            _failureHandler: null,
-            withSuccessHandler: function(cb) { this._successHandler = cb; return this; },
-            withFailureHandler: function(cb) { this._failureHandler = cb; return this; },
-            _executeGet: function(action) {
-              fetch(`${GAS_SECURITY_API_URL}?action=${action}`, { redirect: 'follow' })
-                .then(res => res.json())
-                .then(d => { if (this._successHandler) this._successHandler(d); })
-                .catch(err => { if (this._failureHandler) this._failureHandler(err); });
-            },
-            _executePost: function(action, args) {
-              fetch(GAS_SECURITY_API_URL, { method: 'POST', body: JSON.stringify({ action: action, args: args }), redirect: 'follow' })
-                .then(res => res.json())
-                .then(d => { if (this._successHandler) this._successHandler(d.result); })
-                .catch(err => { if (this._failureHandler) this._failureHandler(err); });
-            },
-            getDivisionsFromUsers: function() { this._executeGet('getDivisionsFromUsers'); },
-            getActivities: function() { this._executeGet('getActivities'); },
-            getArchivedActivities: function() { this._executeGet('getArchivedActivities'); },
-            getRekapAggregation: function() { this._executeGet('getRekapAggregation'); },
-            getChatMessages: function() { this._executeGet('getChatMessages'); },
-            loginUser: function(form) { this._executePost('loginUser', [form]); },
-            saveActivity: function(payload) { this._executePost('saveActivity', [payload]); },
-            deleteActivity: function(id) { this._executePost('deleteActivity', [id]); },
-            sendMessage: function(sender, msg) { this._executePost('sendMessage', [sender, msg]); },
-            changeOwnPassword: function(user, oldP, newP) { this._executePost('changeOwnPassword', [user, oldP, newP]); },
-            addNewUser: function(admin, payload) { this._executePost('addNewUser', [admin, payload]); },
-            verifyLeaderPIN: function(pin) { this._executePost('verifyLeaderPIN', [pin]); }
+            withSuccessHandler: function(successCb) { return new GoogleScriptRunInstance(successCb, null); },
+            withFailureHandler: function(failureCb) { return new GoogleScriptRunInstance(null, failureCb); }
           }
         }
       };
