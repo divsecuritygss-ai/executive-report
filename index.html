@@ -1496,21 +1496,19 @@
         if (overlay && overlay.style.display !== 'none') {
           endLoading();
           Swal.fire({
-            title: 'Koneksi Cloud Terhambat',
-            html: `<div class="text-start small">
-                     Gagal menghubungkan ke database Google Apps Script.<br><br>
-                     <b>Langkah Penanganan Deployment GAS:</b><br>
-                     1. Buka Apps Script Editor di Google Sheets.<br>
-                     2. Klik <b>Deploy > Manage Deployments</b>.<br>
-                     3. Klik ikon Pensil, pastikan <b>Who has access</b> diset ke <b>Anyone (Siapa saja)</b>.<br>
-                     4. Pilih <b>New Version</b> lalu klik <b>Deploy</b>.
+            title: 'Koneksi Jaringan Tidak Stabil',
+            html: `<div class="text-center small text-slate">
+                     Sistem membutuhkan waktu lebih lama dari biasanya untuk terhubung ke server.<br><br>
+                     Silakan periksa sambungan internet Anda dan coba muat ulang data.
                    </div>`,
-            icon: 'warning',
-            confirmButtonText: 'Coba Lagi',
+            icon: 'wifi',
+            iconColor: '#F59E0B',
+            confirmButtonText: '<i class="fas fa-sync-alt me-2"></i>Coba Lagi',
+            confirmButtonColor: '#3B82F6',
             customClass: { popup: 'rounded-4' }
           }).then(() => refreshData());
         }
-      }, 10000); 
+      }, 10000);
       
       const tBox = document.getElementById('telemetryBox');
       const logs = [
