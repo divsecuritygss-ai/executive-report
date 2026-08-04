@@ -2122,6 +2122,44 @@
       document.getElementById('loadingOverlay').style.display = 'none'; 
     }
 
+    let deferredPwaPrompt = null;
+
+    // CAPTURE NATIVE PWA INSTALL PROMPT EVENT FOR LAPTOP & HP
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      console.log('[PWA Engine] Deferred install prompt captured.');
+      
+      // Tampilkan notifikasi penawaran install jika pengguna mengakses via browser
+      if (!window.matchMedia('(display-mode: standalone)').matches) {
+        showPwaInstallBanner();
+      }
+    });
+
+    function showPwaInstallBanner() {
+      if (!deferredPwaPrompt) return;
+      Swal.fire({
+        title: 'Install Aplikasi HCS & GPA',
+        text: 'Tambahkan aplikasi ini ke layar utama Laptop/HP Anda untuk akses cepat dan nyaman.',
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-download me-2"></i>Install Sekarang',
+        cancelButtonText: 'Nanti Saja',
+        confirmButtonColor: '#2563EB',
+        customClass: { popup: 'rounded-4' }
+      }).then((result) => {
+        if (result.isConfirmed && deferredPwaPrompt) {
+          deferredPwaPrompt.prompt();
+          deferredPwaPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('[PWA Engine] User accepted the install prompt');
+            }
+            deferredPwaPrompt = null;
+          });
+        }
+      });
+    }
+
     window.onload = () => {
       // INIT THEME ENGINE
       const savedTheme = localStorage.getItem('theme_preference');
@@ -2138,6 +2176,16 @@
       }
       refreshData();
       initOperationalMap();
+
+      // PWA SERVICE WORKER REGISTRATION & AUTO-UPDATE CHECK
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => {
+            console.log('[PWA Engine] Service Worker registered with scope:', reg.scope);
+            reg.update(); // Paksa periksa pembaruan versi sw.js terbaru
+          })
+          .catch(err => console.error('[PWA Engine] Registration failed:', err));
+      }
     };
 
     function toggleTheme(el) {
