@@ -299,7 +299,7 @@
       backdrop-filter: blur(30px) !important;
       -webkit-backdrop-filter: blur(30px) !important;
       z-index: 999999 !important; /* Menaikkan lapisan ke kasta tertinggi DOM */
-      display: none; 
+      display: flex; /* Aktif default sejak awal render HTML untuk mencegah kedipan FOUC */
       flex-direction: column; 
       justify-content: center; 
       align-items: center; 
@@ -1289,6 +1289,7 @@
       };
 
       // Registrasi Pemetaan Fungsi Operasional PWA Terisolasi
+      GoogleScriptRunInstance.prototype.getInitialData = function() { this._executeGet('getInitialData'); };
       GoogleScriptRunInstance.prototype.getDivisionsFromUsers = function() { this._executeGet('getDivisionsFromUsers'); };
       GoogleScriptRunInstance.prototype.getActivities = function() { this._executeGet('getActivities'); };
       GoogleScriptRunInstance.prototype.getArchivedActivities = function() { this._executeGet('getArchivedActivities'); };
@@ -1522,41 +1523,23 @@
       startLoading("Menghubungkan ke Cloud Database...");
       renderTableSkeletons(); // Tampilkan skeleton screen di bawah overlay
       
-      let divisiLoaded = false;
-      let activitiesLoaded = false;
-      let rekapLoaded = false;
-      let cachedDivList = [];
-      let cachedActivities = [];
-      let cachedRekap = { labels: [], data: [] };
-      
-      function checkSelesaiSinkronisasi() {
-        if (divisiLoaded && activitiesLoaded && rekapLoaded) {
-          populateFilters(cachedDivList);
-          allData = cachedActivities || [];
-          applyGlobalFilters();
-          renderUpdateNotifications(allData); 
-          renderLineChart(cachedRekap);
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res) {
+            populateFilters(res.divisions || []);
+            allData = res.activities || [];
+            applyGlobalFilters();
+            renderUpdateNotifications(allData); 
+            renderLineChart(res.rekap || { labels: [], data: [] });
+          }
           endLoading();
-        }
-      }
-      
-      google.script.run.withSuccessHandler(divList => {
-          cachedDivList = divList;
-          divisiLoaded = true;
-          checkSelesaiSinkronisasi();
-      }).getDivisionsFromUsers();
-      
-      google.script.run.withSuccessHandler(data => { 
-          cachedActivities = data;
-          activitiesLoaded = true;
-          checkSelesaiSinkronisasi();
-      }).getActivities();
-
-      google.script.run.withSuccessHandler(data => { 
-          cachedRekap = data;
-          rekapLoaded = true;
-          checkSelesaiSinkronisasi();
-      }).getRekapAggregation();
+        })
+        .withFailureHandler(err => {
+          endLoading();
+          console.error("Gagal memuat data awal:", err);
+          Swal.fire('Error Database', 'Gagal memuat data dari server.', 'error');
+        })
+        .getInitialData();
     }
 
     function populateFilters(divList = []) {
