@@ -1521,25 +1521,63 @@
 
     function refreshData() {
       startLoading("Menghubungkan ke Cloud Database...");
-      renderTableSkeletons(); // Tampilkan skeleton screen di bawah overlay
+      renderTableSkeletons();
       
+      // STRATEGI HYBRID: Coba Batch Request (getInitialData), jika Backend GAS belum update -> Auto Fallback ke Legacy Endpoints
       google.script.run
         .withSuccessHandler(res => {
-          if (res) {
+          if (res && (res.divisions || res.activities || res.rekap)) {
             populateFilters(res.divisions || []);
             allData = res.activities || [];
             applyGlobalFilters();
             renderUpdateNotifications(allData); 
             renderLineChart(res.rekap || { labels: [], data: [] });
+            endLoading();
+          } else {
+            console.warn("Backend GAS belum mendukung getInitialData. Mengaktifkan fallback mode...");
+            fallbackLegacyRefresh();
           }
-          endLoading();
         })
         .withFailureHandler(err => {
-          endLoading();
-          console.error("Gagal memuat data awal:", err);
-          Swal.fire('Error Database', 'Gagal memuat data dari server.', 'error');
+          console.warn("Respon getInitialData gagal, beralih ke fallback mode:", err);
+          fallbackLegacyRefresh();
         })
         .getInitialData();
+    }
+
+    function fallbackLegacyRefresh() {
+      let divisiLoaded = false;
+      let activitiesLoaded = false;
+      let rekapLoaded = false;
+      let cachedDivList = [];
+      let cachedActivities = [];
+      let cachedRekap = { labels: [], data: [] };
+      
+      function checkSelesaiSinkronisasi() {
+        if (divisiLoaded && activitiesLoaded && rekapLoaded) {
+          populateFilters(cachedDivList);
+          allData = cachedActivities || [];
+          applyGlobalFilters();
+          renderUpdateNotifications(allData); 
+          renderLineChart(cachedRekap);
+          endLoading();
+        }
+      }
+      
+      google.script.run
+        .withSuccessHandler(divList => { cachedDivList = divList || []; divisiLoaded = true; checkSelesaiSinkronisasi(); })
+        .withFailureHandler(() => { divisiLoaded = true; checkSelesaiSinkronisasi(); })
+        .getDivisionsFromUsers();
+      
+      google.script.run
+        .withSuccessHandler(data => { cachedActivities = data || []; activitiesLoaded = true; checkSelesaiSinkronisasi(); })
+        .withFailureHandler(() => { activitiesLoaded = true; checkSelesaiSinkronisasi(); })
+        .getActivities();
+
+      google.script.run
+        .withSuccessHandler(data => { cachedRekap = data || { labels: [], data: [] }; rekapLoaded = true; checkSelesaiSinkronisasi(); })
+        .withFailureHandler(() => { rekapLoaded = true; checkSelesaiSinkronisasi(); })
+        .getRekapAggregation();
     }
 
     function populateFilters(divList = []) {
