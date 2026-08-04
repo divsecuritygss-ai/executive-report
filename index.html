@@ -949,16 +949,19 @@
             <label class="form-label small fw-bold text-navy">Username SSO</label>
             <input type="text" id="l_user" class="form-control bg-light" required placeholder="Masukkan username...">
           </div>
-          <div class="mb-4">
-            <label class="form-label small fw-bold text-navy">Kata Sandi</label>
-            <div class="input-group">
+          <div class="mb-2">
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="form-label small fw-bold text-navy mb-0">Kata Sandi</label>
+              <a href="#" class="small text-decoration-none text-royal fw-bold" style="font-size: 0.75rem;" onclick="openForgotModal()">Lupa Password?</a>
+            </div>
+            <div class="input-group mt-1">
               <input type="password" id="l_pass" class="form-control bg-light border-end-0" required placeholder="••••••••">
               <span class="input-group-text bg-light border-start-0" onclick="togglePassword()" style="cursor: pointer;">
                 <i class="fas fa-eye text-slate" id="eyeIcon"></i>
               </span>
             </div>
           </div>
-          <button type="submit" class="btn btn-action btn-login w-100 py-3 shadow-lg fs-6">MASUK SEKARANG <i class="fas fa-arrow-right ms-2"></i></button>
+          <button type="submit" class="btn btn-action btn-login w-100 py-3 shadow-lg fs-6 mt-3">MASUK SEKARANG <i class="fas fa-arrow-right ms-2"></i></button>
         </form>
       </div>
     </div>
@@ -1129,40 +1132,99 @@
 
   <div class="modal fade" id="adminUserModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <form id="adminUserForm" class="modal-content border-0 p-4 shadow-lg">
+      <div class="modal-content border-0 p-4 shadow-lg">
+        <!-- TAB NAVIGATION ADMIN USER MANAGEMENT -->
+        <ul class="nav nav-pills nav-justified mb-4 bg-light p-1 rounded-3" id="adminUserTab" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active fw-bold small py-2" id="tab-add-tab" data-bs-toggle="pill" data-bs-target="#tab-add" type="button">Tambah User Baru</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-bold small py-2" id="tab-reset-tab" data-bs-toggle="pill" data-bs-target="#tab-reset" type="button">Reset Password Staf</button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="adminUserTabContent">
+          <!-- FORM 1: TAMBAH USER -->
+          <div class="tab-pane fade show active" id="tab-add">
+            <form id="adminUserForm">
+              <div class="text-center mb-3">
+                <div class="h5 fw-bold text-navy mb-1">Registrasi User Baru</div>
+                <p class="text-slate small m-0">Tambahkan personel atau divisi baru ke sistem</p>
+              </div>
+              <div class="mb-2">
+                <label class="form-label small fw-bold text-navy">Username SSO</label>
+                <input type="text" id="u_username" class="form-control bg-light" required placeholder="Contoh: Operation_Staff">
+              </div>
+              <div class="mb-2">
+                <label class="form-label small fw-bold text-navy">Nama Lengkap / Divisi</label>
+                <input type="text" id="u_nama" class="form-control bg-light" required placeholder="Contoh: SCM / Legal">
+              </div>
+              <div class="mb-2">
+                <label class="form-label small fw-bold text-navy">Email Korporat</label>
+                <input type="email" id="u_email" class="form-control bg-light" required placeholder="user@perusahaan.com">
+              </div>
+              <div class="mb-2">
+                <label class="form-label small fw-bold text-navy">Role Akses</label>
+                <select id="u_role" class="form-select bg-light" required>
+                  <option value="Staff">Staff (Hanya kelola divisi sendiri)</option>
+                  <option value="Admin">Admin (Otoritas penuh sistem)</option>
+                </select>
+              </div>
+              <div class="mb-4">
+                <label class="form-label small fw-bold text-navy">Password Default</label>
+                <input type="password" id="u_password" class="form-control bg-light" required placeholder="Buat password awal">
+              </div>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-light w-50 py-2" data-bs-dismiss="modal">BATAL</button>
+                <button type="submit" class="btn btn-action btn-login w-50 py-2 shadow-sm">DAFTARKAN USER</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- FORM 2: RESET PASSWORD USER LAIN -->
+          <div class="tab-pane fade" id="tab-reset">
+            <form id="adminResetForm">
+              <div class="text-center mb-3">
+                <div class="h5 fw-bold text-navy mb-1">Reset Password Staf</div>
+                <p class="text-slate small m-0">Setel ulang password user yang lupa kata sandi</p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label small fw-bold text-navy">Username Target</label>
+                <input type="text" id="ar_target_user" class="form-control bg-light" required placeholder="Masukkan Username user...">
+              </div>
+              <div class="mb-4">
+                <label class="form-label small fw-bold text-navy">Password Baru Sementara</label>
+                <input type="password" id="ar_new_pass" class="form-control bg-light" required placeholder="Minimal 8 karakter">
+              </div>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-light w-50 py-2" data-bs-dismiss="modal">BATAL</button>
+                <button type="submit" class="btn btn-action btn-login w-50 py-2 shadow-sm bg-danger border-danger">RESET PASSWORD</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FORGOT PASSWORD (SELF-SERVICE) -->
+  <div class="modal fade" id="forgotModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <form id="forgotForm" class="modal-content border-0 p-4 shadow-lg">
         <div class="text-center mb-4">
           <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
-            <i class="fas fa-user-plus fs-3"></i>
+            <i class="fas fa-envelope-open-text fs-3"></i>
           </div>
-          <div class="h4 fw-bold text-navy mb-1">Registrasi User Baru</div>
-          <p class="text-slate small">Tambahkan personel atau divisi baru ke dalam sistem</p>
-        </div>
-        <div class="mb-2">
-          <label class="form-label small fw-bold text-navy">Username SSO</label>
-          <input type="text" id="u_username" class="form-control bg-light" required placeholder="Contoh: Operation_Staff">
-        </div>
-        <div class="mb-2">
-          <label class="form-label small fw-bold text-navy">Nama Lengkap / Divisi</label>
-          <input type="text" id="u_nama" class="form-control bg-light" required placeholder="Contoh: SCM / Legal">
-        </div>
-        <div class="mb-2">
-          <label class="form-label small fw-bold text-navy">Email Korporat</label>
-          <input type="email" id="u_email" class="form-control bg-light" required placeholder="user@perusahaan.com">
-        </div>
-        <div class="mb-2">
-          <label class="form-label small fw-bold text-navy">Role Akses</label>
-          <select id="u_role" class="form-select bg-light" required>
-            <option value="Staff">Staff (Hanya kelola divisi sendiri)</option>
-            <option value="Admin">Admin (Otoritas penuh sistem)</option>
-          </select>
+          <div class="h4 fw-bold text-navy mb-1">Lupa Password Akun?</div>
+          <p class="text-slate small">Password baru akan dikirimkan ke email korporat terdaftar Anda</p>
         </div>
         <div class="mb-4">
-          <label class="form-label small fw-bold text-navy">Password Default</label>
-          <input type="password" id="u_password" class="form-control bg-light" required placeholder="Buat password awal">
+          <label class="form-label small fw-bold text-navy">Username atau Email Korporat</label>
+          <input type="text" id="forgot_identifier" class="form-control bg-light py-2" required placeholder="Masukkan Username / Email terdaftar...">
         </div>
         <div class="d-flex gap-2">
-          <button type="button" class="btn btn-light w-50 py-2" data-bs-dismiss="modal">BATAL</button>
-          <button type="submit" class="btn btn-action btn-login w-50 py-2 shadow-sm">DAFTARKAN USER</button>
+          <button type="button" class="btn btn-light w-50 py-2 fw-bold" data-bs-dismiss="modal">BATAL</button>
+          <button type="submit" class="btn btn-action btn-login w-50 py-2 shadow-sm">KIRIM PASSWORD</button>
         </div>
       </form>
     </div>
@@ -1176,8 +1238,69 @@
 
     function openAdminUserModal() {
       document.getElementById('adminUserForm').reset();
+      document.getElementById('adminResetForm').reset();
       new bootstrap.Modal(document.getElementById('adminUserModal')).show();
     }
+
+    function openForgotModal() {
+      const loginModalEl = document.getElementById('loginModal');
+      const loginModal = bootstrap.Modal.getInstance(loginModalEl);
+      if (loginModal) loginModal.hide();
+      
+      document.getElementById('forgotForm').reset();
+      new bootstrap.Modal(document.getElementById('forgotModal')).show();
+    }
+
+    document.getElementById('forgotForm').onsubmit = function(e) {
+      e.preventDefault();
+      const query = document.getElementById('forgot_identifier').value;
+      startLoading("Memproses Reset Password...");
+      bootstrap.Modal.getInstance(document.getElementById('forgotModal')).hide();
+
+      google.script.run
+        .withSuccessHandler(res => {
+          endLoading();
+          if (res.success) {
+            Swal.fire('Email Terkirim!', res.message, 'success');
+          } else {
+            Swal.fire('Gagal Reset', res.message, 'error');
+          }
+        })
+        .withFailureHandler(err => {
+          endLoading();
+          Swal.fire('Error', 'Gagal tersambung ke server', 'error');
+        })
+        .requestPasswordReset(query);
+    };
+
+    document.getElementById('adminResetForm').onsubmit = function(e) {
+      e.preventDefault();
+      const targetUser = document.getElementById('ar_target_user').value;
+      const newPass = document.getElementById('ar_new_pass').value;
+
+      if (newPass.length < 8) {
+        Swal.fire('Peringatan', 'Password baru minimal 8 karakter.', 'warning');
+        return;
+      }
+
+      startLoading("Mereset Password User...");
+      bootstrap.Modal.getInstance(document.getElementById('adminUserModal')).hide();
+
+      google.script.run
+        .withSuccessHandler(res => {
+          endLoading();
+          if (res.success) {
+            Swal.fire('Berhasil', res.message, 'success');
+          } else {
+            Swal.fire('Gagal', res.message, 'error');
+          }
+        })
+        .withFailureHandler(err => {
+          endLoading();
+          Swal.fire('Error', 'Gagal memproses data ke server', 'error');
+        })
+        .adminResetUserPassword(currentUser.username, targetUser, newPass);
+    };
 
     document.getElementById('passwordForm').onsubmit = function(e) {
       e.preventDefault();
@@ -1302,6 +1425,8 @@
       GoogleScriptRunInstance.prototype.changeOwnPassword = function(user, oldP, newP) { this._executePost('changeOwnPassword', [user, oldP, newP]); };
       GoogleScriptRunInstance.prototype.addNewUser = function(admin, payload) { this._executePost('addNewUser', [admin, payload]); };
       GoogleScriptRunInstance.prototype.verifyLeaderPIN = function(pin) { this._executePost('verifyLeaderPIN', [pin]); };
+      GoogleScriptRunInstance.prototype.adminResetUserPassword = function(admin, target, newP) { this._executePost('adminResetUserPassword', [admin, target, newP]); };
+      GoogleScriptRunInstance.prototype.requestPasswordReset = function(query) { this._executePost('requestPasswordReset', [query]); };
 
       // Hubungkan ke Core Object Window dengan Akses Rantai Baru
       window.google = {
