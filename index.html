@@ -1489,7 +1489,7 @@
       document.getElementById('loadingMsg').innerText = msg;
       document.getElementById('loadingOverlay').style.display = 'flex'; 
 
-      // Safety Guardrail: Batas maksimal loading 10 detik untuk mencegah screen freeze di Vercel
+      // Safety Guardrail: Batas maksimal loading disesuaikan menjadi 20 detik untuk mengakomodasi latensi server GAS
       if (globalLoadingTimeout) clearTimeout(globalLoadingTimeout);
       globalLoadingTimeout = setTimeout(() => {
         const overlay = document.getElementById('loadingOverlay');
@@ -1508,7 +1508,7 @@
             customClass: { popup: 'rounded-4' }
           }).then(() => refreshData());
         }
-      }, 10000);
+      }, 20000);
       
       const tBox = document.getElementById('telemetryBox');
       const logs = [
