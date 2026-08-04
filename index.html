@@ -1056,6 +1056,12 @@
         <div class="sidebar-item" id="nav-table" onclick="switchView('table')">
           <i class="fas fa-list-alt fa-fw"></i> Detail Laporan
         </div>
+        
+        <!-- PWA INSTALL TRIGGER BUTTON (AUTOMATICALLY SHOWN WHEN INSTALLABLE) -->
+        <div class="sidebar-item text-info d-none" id="pwaInstallBtnSidebar" onclick="triggerPwaInstall()">
+          <i class="fas fa-download fa-fw"></i> Install Aplikasi
+        </div>
+
         <div class="sidebar-item mt-4 text-danger hover-bg-danger-subtle d-none" id="logoutBtnSidebar" onclick="handleLogout()">
           <i class="fas fa-sign-out-alt fa-fw"></i> Logout
         </div>
@@ -1423,44 +1429,6 @@
 
     </div>
   </div>
-
-    </div>
-  </div>
-
-  <!-- HALAMAN MANAJEMEN (AUTH ONLY) -->
-  <main id="authView" class="d-none container py-5 mt-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
-      <div>
-        <h3 class="fw-800 m-0 text-navy mb-1"><i class="fas fa-database text-royal me-2"></i>Manajemen Data Laporan</h3>
-        <p class="text-slate m-0">Perbarui progres pekerjaan divisi Anda secara berkala ke dalam database.</p>
-      </div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-action btn-outline-secondary btn-sm d-flex align-items-center gap-2" onclick="openPasswordModal()">
-          <i class="fas fa-key"></i> Ganti Password
-        </button>
-        <button id="adminUserBtn" class="btn btn-action btn-outline-primary btn-sm d-none align-items-center gap-2" onclick="openAdminUserModal()">
-          <i class="fas fa-user-plus"></i> Kelola User Baru
-        </button>
-        <button class="btn btn-action btn-login shadow-lg d-flex align-items-center gap-2" onclick="openForm()">
-          <i class="fas fa-plus-circle"></i> Input Laporan Baru
-        </button>
-      </div>
-    </div>
-    <div class="table-box">
-      <table class="table align-middle">
-        <thead>
-          <tr>
-            <th class="ps-4">Detail Pekerjaan</th>
-            <th>Status Utama</th>
-            <th>Persentase</th>
-            <th>Target Selesai</th>
-            <th class="pe-4 text-end">Aksi Manajemen</th>
-          </tr>
-        </thead>
-        <tbody id="authTableBody"></tbody>
-      </table>
-    </div>
-  </main>
 
   <!-- MODAL HISTORY -->
   <div class="modal fade" id="viewModal" tabindex="-1">
@@ -2044,6 +2012,47 @@
 
     let telemetryInterval = null;
     let globalLoadingTimeout = null;
+    
+    // CEK PENGAMAN: JIKA DEFERRED PROMPT BELUM DIDEKLARASIKAN SEBELUMNYA
+    if (typeof deferredPwaPrompt === 'undefined') {
+      var deferredPwaPrompt = null;
+    }
+
+    // CAPTURE NATIVE PWA INSTALL PROMPT EVENT FOR LAPTOP & HP (SAFE SINGLE EVENT)
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      console.log('[PWA Engine] Install prompt captured successfully.');
+      
+      // Tampilkan tombol "Install Aplikasi" di sidebar secara otomatis
+      const btnInstall = document.getElementById('pwaInstallBtnSidebar');
+      if (btnInstall) {
+        btnInstall.classList.remove('d-none');
+      }
+    });
+
+    function triggerPwaInstall() {
+      if (!deferredPwaPrompt) {
+        Swal.fire({
+          title: 'Informasi Instalasi PWA',
+          text: 'Aplikasi sudah terinstal, atau peramban Anda menggunakan mode otomatis. Anda juga dapat menginstal melalui menu titik tiga (⋮) di pojok kanan atas browser.',
+          icon: 'info',
+          confirmButtonColor: '#2563EB',
+          customClass: { popup: 'rounded-4' }
+        });
+        return;
+      }
+      
+      deferredPwaPrompt.prompt();
+      deferredPwaPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('[PWA Engine] Pengguna menyetujui instalasi aplikasi.');
+          const btnInstall = document.getElementById('pwaInstallBtnSidebar');
+          if (btnInstall) btnInstall.classList.add('d-none');
+        }
+        deferredPwaPrompt = null;
+      });
+    }
 
     function startLoading(msg = "Sinkronisasi...") { 
       document.getElementById('loadingMsg').innerText = msg;
@@ -2122,20 +2131,6 @@
       document.getElementById('loadingOverlay').style.display = 'none'; 
     }
 
-    let deferredPwaPrompt = null;
-
-    // CAPTURE NATIVE PWA INSTALL PROMPT EVENT FOR LAPTOP & HP
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPwaPrompt = e;
-      console.log('[PWA Engine] Deferred install prompt captured.');
-      
-      // Tampilkan notifikasi penawaran install jika pengguna mengakses via browser
-      if (!window.matchMedia('(display-mode: standalone)').matches) {
-        showPwaInstallBanner();
-      }
-    });
-
     function showPwaInstallBanner() {
       if (!deferredPwaPrompt) return;
       Swal.fire({
@@ -2153,6 +2148,8 @@
           deferredPwaPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
               console.log('[PWA Engine] User accepted the install prompt');
+              const btnInstall = document.getElementById('pwaInstallBtnSidebar');
+              if (btnInstall) btnInstall.classList.add('d-none');
             }
             deferredPwaPrompt = null;
           });
