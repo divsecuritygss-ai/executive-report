@@ -1,22 +1,26 @@
 {
-  "name": "HCS & GPA Executive Reporting System",
-  "short_name": "Executive Report",
-  "description": "Dashboard Weekly Executive Reporting Console HCS & GPA",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#0b1120",
-  "theme_color": "#0b1120",
-  "orientation": "portrait",
+  "short_name": "HCS Report",
+  "name": "HCS & GPA Executive Report",
+  "description": "System Monitoring Terpadu Laporan Progres Mingguan Divisi",
   "icons": [
     {
       "src": "https://lh3.googleusercontent.com/d/1VshxTxYbt6qgGmeLCLGEedA1jktW9MDD",
+      "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "https://lh3.googleusercontent.com/d/1VshxTxYbt6qgGmeLCLGEedA1jktW9MDD",
+      "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "id": "/?source=pwa",
+  "start_url": "/",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "display": "standalone",
+  "orientation": "any",
+  "scope": "/"
 }
