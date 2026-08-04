@@ -735,7 +735,7 @@
       background: #F8FAFC;
       transition: background 0.3s ease;
     }
-    /* FLASHING RADAR MARKER ANIMATION (LEAFLET COORDINATE SAFE) */
+    /* FLASHING RADAR MARKER ANIMATION (STATIONARY COORDINATE LOCK) */
     .custom-marker {
       width: 14px !important; 
       height: 14px !important;
@@ -744,7 +744,7 @@
       border-radius: 50% !important;
       box-shadow: 0 0 10px #3B82F6;
       cursor: pointer;
-      transition: transform 0.2s ease;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
     }
     .custom-marker::after {
       content: '';
@@ -764,10 +764,32 @@
       0% { transform: scale(0.4); opacity: 1; box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.9); }
       100% { transform: scale(2.4); opacity: 0; box-shadow: 0 0 15px 8px rgba(96, 165, 250, 0); }
     }
+    /* MENGGUNAKAN BOX-SHADOW OUTGLOW UNTUK MENGHINDARI PERGESERAN TRANSLATE3D LEAFLET */
     .custom-marker:hover { 
-      transform: scale(1.3) !important; 
       background: #10B981 !important; 
-      box-shadow: 0 0 15px #10B981; 
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.4), 0 0 18px #10B981 !important; 
+    }
+
+    /* CUSTOM LEAFLET POPUP DESIGN */
+    .custom-leaflet-popup .leaflet-popup-content-wrapper {
+      background: #FFFFFF;
+      color: #0F172A;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+      padding: 6px;
+      border: 1px solid #E2E8F0;
+    }
+    .custom-leaflet-popup .leaflet-popup-tip {
+      background: #FFFFFF;
+    }
+    [data-theme="dark"] .custom-leaflet-popup .leaflet-popup-content-wrapper {
+      background: #0F172A !important;
+      color: #F8FAFC !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
+    }
+    [data-theme="dark"] .custom-leaflet-popup .leaflet-popup-tip {
+      background: #0F172A !important;
     }
     
     /* Perbaikan Aksesibilitas Layer: Menaikkan Panel Popup di Atas Masker Spotlight */
@@ -1225,7 +1247,7 @@
               </div>
             </div>
 
-            <!-- 5. WILAYAH AKTIF (CLEAN UNBOUNDED DESIGN MATCHING OTHER CARDS) -->
+            <!-- 5. WILAYAH AKTIF (CLEAN UNBOUNDED DESIGN) -->
             <div class="col d-flex">
               <div class="w-100 p-2.5 d-flex align-items-center gap-3 border-start-adaptive">
                 <div class="bg-primary-subtle text-primary p-3 rounded-3 flex-shrink-0"><i class="fas fa-globe-asia fs-5"></i></div>
@@ -3362,6 +3384,11 @@
         mapContainer.style.setProperty("--mouse-y", y + "%");
       });
 
+      if (mapInstance) {
+        mapInstance.remove();
+        mapInstance = null;
+      }
+
       try {
         mapInstance = L.map("map3d", {
           zoomControl: true,
@@ -3373,23 +3400,14 @@
           touchZoom: true
         }).setView([0.8, 101.5], 6);
 
-        // DETEKSI TEMA AKTIF SAAT INISIALISASI PETA
         const isDark = document.body.getAttribute('data-theme') === 'dark';
         const tileUrl = isDark 
             ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
             : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-        
-        mapTileLayer = L.tileLayer(tileUrl, {
+
+        L.tileLayer(tileUrl, {
           maxZoom: 20
         }).addTo(mapInstance);
-
-        // Memicu re-Kalkulasi dimensi peta agar pas dengan tinggi kontainer baru
-        setTimeout(function() {
-          if (mapInstance) {
-            mapInstance.invalidateSize();
-            mapInstance.setView([0.8, 101.5], 6);
-          }
-        }, 300);
 
         markerRegistry = {};
 
@@ -3402,7 +3420,7 @@
 
           var markerInstance = L.marker([c.lat, c.lng], { icon: customIcon })
             .addTo(mapInstance)
-            .bindPopup("", { offset: L.point(0, -5) });
+            .bindPopup("", { offset: L.point(0, -5), className: "custom-leaflet-popup" });
 
           markerRegistry[c.name] = markerInstance;
         });
@@ -3418,14 +3436,12 @@
             var matchedTarget = coords.find(function (item) { return item.name === activeVal; });
             
             if (matchedTarget) {
-              // DIPERBAIKI: Menggunakan mapInstance, bukan map
               mapInstance.flyTo([matchedTarget.lat, matchedTarget.lng], 8, { animate: true, duration: 1.5 });
               if (markerRegistry[activeVal]) {
                 markerRegistry[activeVal].openPopup();
               }
             } else if (activeVal === "All") {
-              // DIPERBAIKI: Menggunakan mapInstance, bukan map
-              mapInstance.flyTo([0.2, 102.0], 5.3, { animate: true, duration: 1.2 });
+              mapInstance.flyTo([0.8, 101.5], 6, { animate: true, duration: 1.2 });
               mapInstance.closePopup();
             }
           };
@@ -3448,8 +3464,10 @@
         { name: "JAKARTA", lat: -6.219009087, lng: 106.8344576 }
       ];
 
+      const dataList = currentData || [];
+
       coords.forEach(function (c) {
-        const regionData = currentData.filter(d => (d.Wilayah_Kerja || "").trim() === c.name.trim());
+        const regionData = dataList.filter(d => (d.Wilayah_Kerja || "").trim().toLowerCase() === c.name.trim().toLowerCase());
         const totalTasks = regionData.length;
         const overdueTasks = regionData.filter(d => getLogicStatus(d).label === "Overdue").length;
         
@@ -3460,7 +3478,7 @@
         }, {});
 
         const divHtml = Object.entries(divCounts).map(([div, count]) => `
-          <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:2px; color:#475569;">
+          <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:2px; color:#64748b;">
               <span>${div}</span>
               <span style="font-weight:700; color:#0f172a;">${count} Task</span>
           </div>
@@ -3487,8 +3505,8 @@
                   <div style="font-size:10px; font-weight:700; color:#64748b; margin-bottom:6px; text-transform:uppercase;">Distribusi Divisi</div>
                   ${divHtml || '<div style="font-size:10px; color:#94a3b8;">Tidak ada data</div>'}
               </div>
-              <button class="btn btn-sm w-100" style="background: var(--royal); color:white; font-size:11px; font-weight:600;" 
-                      onclick="document.getElementById('filterWilayah').value = '${c.name}'; applyGlobalFilters();">
+              <button class="btn btn-sm w-100" style="background: #2563EB; color:white; font-size:11px; font-weight:600; border-radius: 6px;" 
+                      onclick="var sel = document.getElementById('filterWilayah'); if(sel){ sel.value = '${c.name}'; applyGlobalFilters(); }">
                   FILTER DATA WILAYAH
               </button>
             </div>
