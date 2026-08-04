@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Executive Report - Dashboard</title>
   
-  <!-- PWA Metadata & iOS Support -->
-  <link rel="manifest" href="/manifest.json">
+  <!-- Web App Metadata & iOS Support -->
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1VshxTxYbt6qgGmeLCLGEedA1jktW9MDD">
   <meta name="theme-color" content="#030712">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,36 +22,79 @@
   
  <style>
     :root {
-      --navy: #0B1120;
+      --navy: #090D16;
       --navy-light: #1E293B;
-      --royal: #3B82F6;
-      --royal-glow: rgba(59, 130, 246, 0.4);
+      --royal: #2563EB;
+      --royal-glow: rgba(37, 99, 235, 0.35);
       --slate: #64748B;
       --emerald: #10B981;
       --amber: #F59E0B;
       --rose: #F43F5E;
       --bg: #F8FAFC;
       --surface: #FFFFFF;
-      --border: rgba(226, 232, 240, 0.8);
-      --glass-bg: rgba(255, 255, 255, 0.7);
+      --border: rgba(226, 232, 240, 0.85);
+      --glass-bg: rgba(255, 255, 255, 0.75);
+      --apple-ease: cubic-bezier(0.16, 1, 0.3, 1);
     }
     
-    /* CUSTOM SCROLLBAR */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    /* APPLE SMOOTH SCROLLBAR */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.7); }
 
     body { 
-        font-family: 'Plus Jakarta Sans', sans-serif; 
+        font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif; 
         background-color: var(--bg); 
         background-image: 
-            radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
-            radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
         background-attachment: fixed;
         color: var(--navy-light); 
-        transition: all 0.3s ease; 
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: all 0.4s var(--apple-ease); 
         overflow-x: hidden;
+    }
+
+    /* APPLE DIVISION PILL SWITCHER */
+    .division-nav-wrapper {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        border-radius: 20px;
+        padding: 8px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05);
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+    }
+    .division-pill-item {
+        padding: 10px 20px;
+        border-radius: 14px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--slate);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.3s var(--apple-ease);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .division-pill-item:hover {
+        color: var(--navy);
+        background: rgba(241, 245, 249, 0.8);
+    }
+    .division-pill-item.active {
+        background: linear-gradient(135deg, #0F172A 0%, #020617 100%);
+        color: #FFFFFF;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.25);
     }
     
     /* NAVIGASI - GLASSMORPHISM */
@@ -364,6 +406,134 @@
       width: 6px; height: 6px; background-color: #10B981; border-radius: 50%;
       display: inline-block; margin-right: 6px; box-shadow: 0 0 8px #10B981;
     }
+    /* =========================================
+       NEW ENTERPRISE SAAS SIDEBAR LAYOUT ENGINE
+       ========================================= */
+    body { background-color: #F8FAFC; margin: 0; padding: 0; overflow: hidden; }
+    
+    .app-wrapper { display: flex; height: 100vh; width: 100vw; overflow: hidden; background: #F8FAFC; }
+    
+    /* SIDEBAR STYLES */
+    .sidebar-modern { width: 260px; background-color: #030712; color: #FFFFFF; display: flex; flex-direction: column; flex-shrink: 0; box-shadow: 2px 0 15px rgba(0,0,0,0.1); z-index: 100; transition: all 0.3s ease; }
+    .sidebar-header { padding: 24px 20px 16px 20px; }
+    .sidebar-menu { flex-grow: 1; overflow-y: auto; padding: 0 12px; margin-top: 10px; }
+    .sidebar-menu::-webkit-scrollbar { width: 4px; }
+    .sidebar-item { padding: 12px 16px; border-radius: 10px; color: #94A3B8; text-decoration: none; display: flex; align-items: center; gap: 14px; font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; cursor: pointer; transition: all 0.2s ease; }
+    .sidebar-item:hover { color: #FFFFFF; background-color: rgba(255,255,255,0.08); }
+    .sidebar-item.active { background-color: #1E40AF; color: #FFFFFF; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.4); }
+    .sidebar-filter-box { background-color: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin: 16px 12px; }
+    .filter-label-dark { color: #94A3B8; font-size: 0.72rem; font-weight: 700; margin-bottom: 6px; display: block; }
+    .select-dark { 
+        background-color: #0F172A; border: 1px solid #1E293B; color: #CBD5E1; border-radius: 8px; 
+        padding: 8px 12px; font-size: 0.85rem; width: 100%; margin-bottom: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); 
+        outline: none; cursor: pointer; appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394A3B8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 10px center; background-size: 1em;
+    }
+    .select-dark:focus { border-color: #3B82F6; color: #FFFFFF; }
+    
+    /* MAIN CONTENT & GLASSMORPHIC TOPBAR */
+    .main-panel { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; position: relative; background: #F8FAFC; }
+    .topbar-modern { 
+      background: rgba(255, 255, 255, 0.85); 
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 16px 32px; 
+      border-bottom: 1px solid #E2E8F0; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      position: sticky; 
+      top: 0; 
+      z-index: 90; 
+      transition: all 0.3s ease;
+    }
+    
+    /* MODERN KPI CARDS */
+    .kpi-card-solid { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.01); display: flex; flex-direction: column; justify-content: space-between; height: 100%; transition: transform 0.2s ease; cursor: pointer; }
+    .kpi-card-solid:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+    .kpi-icon-soft { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    
+    /* CARD ELEVATION & DYNAMIC HOVER SHADOW ENGINE */
+    .chart-card { 
+      background: #FFFFFF; 
+      border: 1px solid #E2E8F0; 
+      border-radius: 12px; 
+      padding: 20px; 
+      box-shadow: 0 2px 10px rgba(0,0,0,0.01);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease;
+    }
+    .chart-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px -4px rgba(15, 23, 42, 0.1), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+      border-color: rgba(37, 99, 235, 0.3);
+    }
+    [data-theme="dark"] .chart-card:hover {
+      box-shadow: 0 14px 30px -4px rgba(0, 0, 0, 0.75), 0 0 20px rgba(59, 130, 246, 0.22) !important;
+      border-color: rgba(59, 130, 246, 0.45) !important;
+    }
+
+    /* GLOBAL CURSOR UTILITY & NOTIFICATION BELL INTERACTION */
+    .cursor-pointer {
+      cursor: pointer !important;
+    }
+    .bell-notification-btn {
+      cursor: pointer !important;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+      border-radius: 50%;
+    }
+    .bell-notification-btn:hover {
+      background-color: rgba(37, 99, 235, 0.08);
+    }
+    .bell-notification-btn:hover i {
+      color: #2563EB !important;
+      transform: scale(1.15);
+    }
+    [data-theme="dark"] .bell-notification-btn:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+    [data-theme="dark"] .bell-notification-btn:hover i {
+      color: #60A5FA !important;
+    }
+    
+    /* SUMMARY CARD SYMMETRY & THEME ADAPTATION */
+    .summary-wilayah-card {
+      background-color: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      transition: all 0.3s ease;
+    }
+    [data-theme="dark"] .summary-wilayah-card {
+      background-color: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    [data-theme="dark"] .border-start-adaptive {
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    @media (min-width: 1200px) {
+      .border-start-adaptive {
+        border-left: 1px solid #E2E8F0;
+      }
+    }
+
+    /* HOVER EFFECT FOR LIHAT DETAIL LINK */
+    .hover-lihat-detail {
+      color: #2563EB !important;
+      transition: all 0.2s ease-in-out;
+    }
+    .hover-lihat-detail:hover {
+      color: #1D4ED8 !important;
+      transform: translateY(-1.5px);
+      text-decoration: underline !important;
+    }
+    [data-theme="dark"] .hover-lihat-detail {
+      color: #60A5FA !important;
+    }
+    [data-theme="dark"] .hover-lihat-detail:hover {
+      color: #93C5FD !important;
+      text-decoration: underline !important;
+      text-shadow: 0 0 8px rgba(96, 165, 250, 0.4);
+    }
+    
     /* SCALE UP: EXPANDED IMMERSIVE WORKSPACE */
     .luxury-loader-card {
       background: linear-gradient(135deg, rgba(15, 23, 42, 0.65) 0%, rgba(2, 6, 23, 0.8) 100%);
@@ -545,42 +715,60 @@
       border-radius: 1rem;
       overflow: hidden;
     }
-    /* Mengembalikan Kontainer ke Mode Flat Tajam Maksimal */
+    /* ADAPTIVE MAP CONTAINER STYLING */
     .map-container-relative {
       position: relative;
       width: 100%;
       height: 420px;
       border-radius: 1rem;
       overflow: hidden;
-      background: #0b1120;
+      background: #F8FAFC;
+      transition: background 0.3s ease;
+    }
+    [data-theme="dark"] .map-container-relative, 
+    [data-theme="dark"] #map3d {
+      background: #030712 !important;
     }
     #map3d { 
       width: 100%; 
       height: 100%; 
-      background: #0b1120;
+      background: #F8FAFC;
+      transition: background 0.3s ease;
     }
-    
-    /* Efek Rambatan Cahaya yang Dioptimalkan untuk Lapisan Map Gelap */
-    .map-spotlight-overlay {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none;
-      background: radial-gradient(circle 180px at var(--mouse-x, 50%) var(--mouse-y, 50%), 
-                    rgba(6, 182, 212, 0.35) 0%,   /* Inti Cahaya: Neon Cyan */
-                    rgba(37, 99, 235, 0.12) 50%,   /* Bias Menengah: Royal Blue */
-                    rgba(11, 17, 32, 0.88) 100%);  /* Batas Kegelapan Dashboard */
-      z-index: 1000;
-      transition: background 0.01s linear;
-    }
+    /* FLASHING RADAR MARKER ANIMATION (LEAFLET COORDINATE SAFE) */
     .custom-marker {
-      width: 14px !important; height: 14px !important;
-      background: var(--royal) !important;
+      width: 14px !important; 
+      height: 14px !important;
+      background: #3B82F6 !important;
       border: 2px solid #FFFFFF !important;
       border-radius: 50% !important;
-      box-shadow: 0 0 8px var(--royal), 0 0 16px var(--royal);
+      box-shadow: 0 0 10px #3B82F6;
       cursor: pointer;
+      transition: transform 0.2s ease;
     }
-    .custom-marker:hover { transform: scale(1.3); background: var(--emerald); box-shadow: 0 0 15px var(--emerald); }
+    .custom-marker::after {
+      content: '';
+      position: absolute;
+      top: -5px; 
+      left: -5px; 
+      width: 20px; 
+      height: 20px;
+      border: 2px solid #60A5FA;
+      border-radius: 50%;
+      box-sizing: border-box;
+      transform-origin: center center;
+      animation: markerPulse 1.8s infinite cubic-bezier(0, 0.2, 0.8, 1);
+      pointer-events: none;
+    }
+    @keyframes markerPulse {
+      0% { transform: scale(0.4); opacity: 1; box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.9); }
+      100% { transform: scale(2.4); opacity: 0; box-shadow: 0 0 15px 8px rgba(96, 165, 250, 0); }
+    }
+    .custom-marker:hover { 
+      transform: scale(1.3) !important; 
+      background: #10B981 !important; 
+      box-shadow: 0 0 15px #10B981; 
+    }
     
     /* Perbaikan Aksesibilitas Layer: Menaikkan Panel Popup di Atas Masker Spotlight */
     .leaflet-popup-pane { z-index: 1005 !important; }
@@ -600,6 +788,160 @@
     .skeleton-text.short { width: 60%; }
     .skeleton-badge { height: 24px; width: 80px; border-radius: 12px; }
     .skeleton-progress { height: 12px; width: 120px; border-radius: 6px; }
+
+    /* =========================================
+       DARK THEME ENGINE (ENTERPRISE SAAS)
+       ========================================= */
+    [data-theme="dark"] {
+      --navy: #F8FAFC;
+      --navy-light: #CBD5E1;
+      --slate: #94A3B8;
+      --bg: #020617; 
+      --surface: #0F172A; 
+      --border: rgba(255, 255, 255, 0.08);
+    }
+    
+    [data-theme="dark"] body, [data-theme="dark"] .app-wrapper, [data-theme="dark"] .main-panel { background-color: var(--bg) !important; color: var(--navy-light); }
+    [data-theme="dark"] .topbar-modern {
+      background: rgba(2, 6, 23, 0.75) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+    [data-theme="dark"] .kpi-card-solid, [data-theme="dark"] .chart-card { background-color: var(--surface) !important; border-color: var(--border) !important; }
+    [data-theme="dark"] .bg-white { background-color: var(--surface) !important; }
+    [data-theme="dark"] .bg-light { background-color: rgba(255, 255, 255, 0.03) !important; }
+    [data-theme="dark"] .text-navy { color: var(--navy) !important; }
+    [data-theme="dark"] .text-slate { color: var(--slate) !important; }
+    [data-theme="dark"] .border, [data-theme="dark"] .border-bottom, [data-theme="dark"] .border-top, [data-theme="dark"] .border-start, [data-theme="dark"] .border-end { border-color: var(--border) !important; }
+    
+    /* TABLE DARK MODE CONTRAST & HOVER ACCESSIBILITY FIX */
+    [data-theme="dark"] .table,
+    [data-theme="dark"] .table-responsive,
+    [data-theme="dark"] .table-desktop,
+    [data-theme="dark"] .table > :not(caption) > * > * {
+      --bs-table-bg: transparent !important;
+      --bs-table-color: #F8FAFC !important;
+      --bs-table-border-color: rgba(255, 255, 255, 0.08) !important;
+      background-color: transparent !important;
+      color: #F8FAFC !important;
+    }
+    [data-theme="dark"] .table tbody tr,
+    [data-theme="dark"] .table tbody tr td {
+      background-color: transparent !important;
+      color: #F8FAFC !important;
+    }
+    [data-theme="dark"] .table-hover tbody tr:hover,
+    [data-theme="dark"] .table-hover tbody tr:hover > * {
+      background-color: rgba(255, 255, 255, 0.06) !important;
+      color: #FFFFFF !important;
+    }
+    [data-theme="dark"] .table thead th { 
+      background: rgba(0, 0, 0, 0.3) !important; 
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important; 
+      color: #94A3B8 !important; 
+    }
+    
+    /* NEXT STEPS CALLOUT & BADGES IN DARK MODE */
+    [data-theme="dark"] .bg-primary-subtle { 
+      background-color: rgba(37, 99, 235, 0.2) !important; 
+      color: #93C5FD !important; 
+      border-color: rgba(37, 99, 235, 0.3) !important;
+    }
+    [data-theme="dark"] .bg-primary-subtle .text-navy,
+    [data-theme="dark"] .bg-primary-subtle .text-royal,
+    [data-theme="dark"] .bg-primary-subtle div { 
+      color: #E0F2FE !important; 
+    }
+    [data-theme="dark"] .status-active { background: rgba(59, 130, 246, 0.2) !important; color: #60A5FA !important; border-color: rgba(59, 130, 246, 0.3) !important; }
+    [data-theme="dark"] .status-done { background: rgba(16, 185, 129, 0.2) !important; color: #34D399 !important; border-color: rgba(16, 185, 129, 0.3) !important; }
+    [data-theme="dark"] .status-overdue { background: rgba(244, 63, 94, 0.2) !important; color: #F87171 !important; border-color: rgba(244, 63, 94, 0.3) !important; }
+    [data-theme="dark"] .progress { background-color: rgba(255, 255, 255, 0.1) !important; }
+    
+    [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: rgba(255,255,255,0.05) !important; color: var(--navy) !important; border-color: var(--border) !important; }
+    [data-theme="dark"] .form-control:focus, [data-theme="dark"] .form-select:focus { background-color: rgba(255,255,255,0.08) !important; }
+    [data-theme="dark"] .input-group-text { background-color: rgba(255,255,255,0.03) !important; border-color: var(--border) !important; color: var(--slate) !important; }
+    
+    /* THEME SWITCHER UI */
+    .theme-switch-wrapper {
+        background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); 
+        border-radius: 12px; padding: 12px 16px; margin: 10px 16px; display: flex; 
+        justify-content: space-between; align-items: center; transition: all 0.3s ease;
+    }
+    .theme-switch-wrapper:hover { background: rgba(255, 255, 255, 0.06); }
+    .form-switch .form-check-input.theme-slider {
+        width: 42px; height: 22px; margin: 0; background-color: #475569; border: none; cursor: pointer;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    }
+    .form-switch .form-check-input.theme-slider:checked { background-color: var(--royal); }
+    .theme-label { color: #94A3B8; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    [data-theme="dark"] .theme-label .fa-moon { color: #F59E0B; }
+
+    /* =========================================
+       MODAL LEGIBILITY & ACCESSIBILITY FIX
+       ========================================= */
+    .modal-content {
+      background-color: #FFFFFF !important;
+      color: #0F172A !important;
+      border-radius: 1.25rem !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+    .modal-content .text-navy, 
+    .modal-content .form-label, 
+    .modal-content .h3, 
+    .modal-content .h4, 
+    .modal-content h5 {
+      color: #0F172A !important;
+    }
+    .modal-content .text-slate {
+      color: #475569 !important;
+    }
+    .modal-content .form-control, 
+    .modal-content .form-select {
+      background-color: #F8FAFC !important;
+      color: #0F172A !important;
+      border: 1px solid #CBD5E1 !important;
+    }
+    .modal-content .form-control::placeholder {
+      color: #94A3B8 !important;
+    }
+    .modal-content .input-group-text {
+      background-color: #F8FAFC !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #64748B !important;
+    }
+
+    /* DARK MODE OVERRIDES FOR MODALS */
+    [data-theme="dark"] .modal-content {
+      background-color: #0F172A !important;
+      color: #F8FAFC !important;
+      border: 1px solid rgba(255,255,255,0.12) !important;
+    }
+    [data-theme="dark"] .modal-content .text-navy, 
+    [data-theme="dark"] .modal-content .form-label, 
+    [data-theme="dark"] .modal-content .h3, 
+    [data-theme="dark"] .modal-content .h4, 
+    [data-theme="dark"] .modal-content h5 {
+      color: #F8FAFC !important;
+    }
+    [data-theme="dark"] .modal-content .text-slate {
+      color: #94A3B8 !important;
+    }
+    [data-theme="dark"] .modal-content .form-control, 
+    [data-theme="dark"] .modal-content .form-select {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: #F8FAFC !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
+    [data-theme="dark"] .modal-content .form-control::placeholder {
+      color: #64748B !important;
+    }
+    [data-theme="dark"] .modal-content .input-group-text {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      color: #94A3B8 !important;
+    }
 
 </style>
 </head>
@@ -634,239 +976,408 @@
     </div>
   </div>
 
-  <!-- NAVIGASI -->
-  <nav class="navbar sticky-top">
-    <div class="container">
-      <a class="navbar-brand nav-brand d-flex align-items-center" href="#" onclick="switchView('home')">
-        <div class="text-white rounded-3 p-2 me-2 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #0F172A 0%, #020617 100%); width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(15, 23, 42, 0.4);">
-            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13z"/><path d="M7.5 4v4.5H11v-1H8.5V4h-1z"/></svg> 
+  <!-- ================================================== -->
+  <!-- APP WRAPPER: SIDEBAR + MAIN PANEL (SAAS PARADIGM)  -->
+  <!-- ================================================== -->
+  <div class="app-wrapper">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar-modern">
+      <div class="sidebar-header pb-2">
+        <div class="d-flex align-items-center gap-2.5 mb-2">
+          <img src="https://lh3.googleusercontent.com/d/1VshxTxYbt6qgGmeLCLGEedA1jktW9MDD" alt="HCS Logo" style="width: 36px; height: 36px; object-fit: contain; border-radius: 50%;">
+          <h4 class="fw-800 m-0 text-white" style="letter-spacing: -0.5px; line-height: 1.1;">HCS & GPA</h4>
         </div>
-        HCS & GPA
-      </a>
-      <div id="navRight" class="ms-auto d-flex align-items-center">
-        <div class="position-relative me-4 d-inline-block" style="cursor: pointer; transition: transform 0.2s;" data-bs-toggle="modal" data-bs-target="#updateModal" title="Lihat Update Terbaru" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-          <svg width="22" height="22" fill="#0F172A" viewBox="0 0 16 16" style="display: block;">
-            <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z"/>
-          </svg>
-          <span id="updateBadge" class="position-absolute badge rounded-pill shadow-sm" style="font-size: 0.65rem; border: 2px solid white; top: -5px; right: -8px; background-color: #F43F5E; color: #FFFFFF;">0</span>
-        </div>
-        <button class="btn btn-action btn-login btn-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#loginModal" id="loginBtn">
-          <i class="fas fa-user-lock"></i><span>LOGIN</span>
-        </button>
-        <div id="userBadge" class="d-none d-flex align-items-center bg-white border rounded-pill p-1 pe-3 shadow-sm">
-          <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-              <i class="fas fa-user"></i>
-          </div>
-          <span id="userNameDisplay" class="me-3 fw-bold text-navy small"></span>
-          <button class="btn btn-light btn-sm rounded-circle text-danger border-0 hover-bg-danger-subtle" onclick="handleLogout()" title="Logout" style="width: 30px; height: 30px; padding: 0;">
-            <i class="fas fa-power-off"></i>
-          </button>
+        <div>
+          <span class="badge py-1 px-2.5 rounded-pill fw-bold d-inline-block" 
+                style="background: rgba(37, 99, 235, 0.2); color: #60A5FA; border: 1px solid rgba(37, 99, 235, 0.35); font-size: 0.58rem; letter-spacing: 0.5px; text-transform: uppercase;">
+            SISTEM MONITORING TERPADU <span style="color: #FFFFFF; font-weight: 800; margin-left: 2px;">V.3</span>
+          </span>
         </div>
       </div>
-    </div>
-  </nav>
 
-  <!-- HALAMAN UTAMA (PUBLIC DASHBOARD) -->
-  <main id="homeView">
-    <section class="hero-banner">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col-lg-7 position-relative z-1">
-            <span class="badge bg-primary-subtle text-primary mb-3 px-3 py-2 rounded-pill fw-bold border" style="letter-spacing: 1px;">SISTEM MONITORING TERPADU</span>
-            <h1 class="display-4 hero-title mb-4">Dashboard Weekly Report</h1>
-            <p class="lead opacity-75 mb-0" style="max-width: 600px; font-weight: 400; line-height: 1.8;">Konsolidasi laporan progres mingguan divisi sebagai instrumen akuntabilitas kinerja dan parameter pengambilan keputusan strategis pimpinan.</p>
+      <nav class="sidebar-menu">
+        <div class="sidebar-item active" id="nav-home" onclick="switchView('home')">
+          <i class="fas fa-home fa-fw"></i> Dashboard
+        </div>
+        <div class="sidebar-item" id="nav-division" onclick="switchView('division')">
+          <i class="fas fa-th-large fa-fw"></i> Matriks Divisi
+        </div>
+        <div class="sidebar-item" id="nav-table" onclick="switchView('table')">
+          <i class="fas fa-list-alt fa-fw"></i> Detail Laporan
+        </div>
+        <div class="sidebar-item mt-4 text-danger hover-bg-danger-subtle d-none" id="logoutBtnSidebar" onclick="handleLogout()">
+          <i class="fas fa-sign-out-alt fa-fw"></i> Logout
+        </div>
+      </nav>
+
+      <div class="mt-auto pt-3">
+        <!-- THEME SWITCHER -->
+        <div class="theme-switch-wrapper">
+          <div class="theme-label" id="themeIconLabel">
+            <i class="fas fa-moon"></i> <span>Dark Mode</span>
           </div>
-          <div class="col-lg-5 text-end d-none d-lg-block position-relative z-1 align-self-start mt-2">
-             <img src="https://lh3.googleusercontent.com/d/19bpHHKN1HjIdPCUF2QP446QKQFqpH2Nw" alt="EMP Logo" class="img-fluid" style="max-height: 75px; mix-blend-mode: screen;">
+          <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+            <input class="form-check-input m-0 theme-slider" type="checkbox" role="switch" id="themeToggle" onchange="toggleTheme(this)">
           </div>
         </div>
-      </div>
-    </section>
-
-    <div class="container"> 
-      <div class="kpi-container">
-        <style>@keyframes spin-svg { 100% { transform: rotate(360deg); } }</style>
         
-        <div class="row g-3 g-md-4 mb-4 justify-content-center">
-          <div class="col-12 col-md-4" style="flex: 0 0 auto; width: 33.33%; min-width: 160px;">
-            <div class="card-kpi kpi-total-card" onclick="sendTotalWA()">
-              <div class="d-flex justify-content-between align-items-start">
-                <div class="kpi-label">Total Aktivitas</div>
-                <div class="kpi-icon-box bg-primary-subtle text-primary">
-                  <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M14.12 10.163l1.715.858a.5.5 0 0 0 .447 0l-8-4a.5.5 0 0 0-.447 0l-8 4a.5.5 0 0 0 .447 0l1.715-.858L8 14.35l6.12-4.187zM8 12.15l-5.613-3.84L8 5.603l5.613 2.707L8 12.15z"/><path d="M14.12 6.163l1.715.858a.5.5 0 0 0 .447 0l-8-4a.5.5 0 0 0-.447 0l-8 4a.5.5 0 0 0 .447 0l1.715-.858L8 10.35l6.12-4.187zM8 8.15l-5.613-3.84L8 1.603l5.613 2.707L8 8.15z"/></svg>
-                </div>
-              </div>
-              <div id="kpi-total" class="kpi-value">0</div>
-              <div class="small fw-bold text-slate d-flex align-items-center gap-2">
-                <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1 border border-success-subtle d-flex align-items-center gap-1">
-                  <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
-                  Lapor WA
-                </span>
-                <span class="opacity-75" style="font-size: 0.7rem;">Ketuk untuk bagikan</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-6 col-md-4" style="flex: 0 0 auto; width: 33.33%; min-width: 160px;">
-            <div class="card-kpi kpi-overdue-card" onclick="sendOverdueWA()">
-              <div class="d-flex justify-content-between align-items-start">
-                <div class="kpi-label">Overdue</div>
-                <div class="kpi-icon-box bg-danger-subtle text-danger">
-                  <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/><path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/></svg>
-                </div>
-              </div>
-              <div id="kpi-overdue" class="kpi-value">0</div>
-              <div class="small fw-bold text-slate d-flex align-items-center gap-2">
-                <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1 border border-success-subtle d-flex align-items-center gap-1">
-                  <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
-                  Alert WA
-                </span>
-                <span class="opacity-75 text-danger" style="font-size: 0.7rem;">Terlambat</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-6 col-md-4" style="flex: 0 0 auto; width: 33.33%; min-width: 160px;">
-            <div class="card-kpi kpi-progress-card">
-              <div class="d-flex justify-content-between align-items-start">
-                <div class="kpi-label">On Progress</div>
-                <div class="kpi-icon-box bg-warning-subtle text-warning">
-                  <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16" style="animation: spin-svg 2s linear infinite;"><path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg>
-                </div>
-              </div>
-              <div id="kpi-running" class="kpi-value">0</div>
-              <div class="small fw-bold text-slate d-flex align-items-center gap-2">
-                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 border border-secondary-subtle d-flex align-items-center gap-1">
-                  <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg>
-                  Realtime
-                </span>
-                <span class="opacity-75" style="font-size: 0.7rem;">Sedang Berjalan</span>
-              </div>
-            </div>
-          </div>
+        <div class="p-4 text-center text-slate" style="font-size: 0.65rem;">
+          &copy; 2026 HCS & GPA Department<br>All rights reserved.
         </div>
       </div>
+    </aside>
 
-      <div class="map-wrapper-3d">
-        <div class="mb-4">
-          <h5 class="fw-bold text-navy mb-1">Pemetaan Geografis Wilayah Kerja</h5>
-          <p class="small text-slate m-0">Visualisasi koordinat dan lokasi spasial interaktif wilayah kerja operasional</p>
-        </div>
-        <div class="map-container-relative" id="mapContainer">
-          <div class="map-spotlight-overlay"></div>
-          <div id="map3d"></div>
-        </div>
-      </div>
-
-      <!-- FILTER BAR UPDATE: Glassmorphism -->
-      <div class="filter-bar">
-        <div class="row w-100 g-4 align-items-end">
-          <div class="col-md-4">
-            <label class="filter-label">
-              <span class="bg-primary-subtle text-primary rounded p-1 me-2"><i class="fas fa-building fa-fw"></i></span> Filter Divisi
-            </label>
-            <select id="filterDivisi" class="form-select-custom shadow-sm" onchange="applyGlobalFilters()">
-              <option value="All">Semua Divisi</option>
-            </select>
-          </div>
-          
-          <div class="col-md-4">
-            <label class="filter-label">
-              <span class="bg-emerald-subtle text-emerald rounded p-1 me-2" style="background: rgba(16,185,129,0.1); color: var(--emerald);"><i class="fas fa-map-marker-alt fa-fw"></i></span> Wilayah Kerja
-            </label>
-            <select id="filterWilayah" class="form-select-custom shadow-sm" onchange="applyGlobalFilters()">
-              <option value="All">Semua Wilayah Kerja</option>
-              <option value="PGE">PGE</option>
-              <option value="ITA">ITA</option>
-              <option value="BENTU">BENTU</option>
-              <option value="TONGA">TONGA</option>
-              <option value="GEBANG">GEBANG</option>
-              <option value="SIAK">SIAK</option>
-              <option value="KAMPAR">KAMPAR</option>
-              <option value="ACEH ENERGI">ACEH ENERGI</option>
-              <option value="JAKARTA">JAKARTA</option>
-              <option value="S-CPP">S-CPP</option>
-              <option value="KORINCI BARU">KORINCI BARU</option>
-              <option value="MULTI">MULTI</option>
-            </select>
-          </div>
-
-          <div class="col-md-4">
-            <label class="filter-label">
-              <span class="bg-rose-subtle text-rose rounded p-1 me-2" style="background: rgba(244,63,94,0.1); color: var(--rose);"><i class="fas fa-tasks fa-fw"></i></span> Status Kerja
-            </label>
-            <select id="filterStatus" class="form-select-custom shadow-sm" onchange="applyGlobalFilters()">
-              <option value="All">Semua Status</option>
-              <option value="Overdue" style="color: var(--rose); font-weight: bold;">Overdue</option>
-              <option value="On Progress">On Progress</option>
-              <option value="Done" style="color: var(--emerald); font-weight: bold;">Done (Arsip)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-4 mb-5">
-        <div class="col-lg-8">
-          <div class="chart-wrapper">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold m-0 text-navy">Beban Kerja per Divisi</h5>
-                <span class="badge border rounded-pill px-3 py-2" style="background-color: #F1F5F9; color: #475569; font-weight: 700;"><i class="fas fa-chart-bar me-1"></i> Analisis Distribusi</span>
-            </div>
-            <div style="height: 350px;"><canvas id="mainBarChart"></canvas></div>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="chart-wrapper">
-             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold m-0 text-navy">Status Progres</h5>
-             </div>
-            <div style="height: 350px; position: relative;"><canvas id="mainPieChart"></canvas></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="chart-wrapper mb-5" style="height: auto; padding: 40px;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-               <h5 class="fw-bold m-0 text-navy">Tren Capaian Historis</h5>
-               <div class="small text-slate mt-1">Akumulasi pekerjaan berstatus "Done" per bulan</div>
-            </div>
-            <span class="badge rounded-pill px-3 py-2" style="background-color: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700;"><i class="fas fa-chart-line me-1"></i> Data Arsip</span>
-        </div>
-        <div style="height: 320px;"><canvas id="rekapLineChart"></canvas></div>
-      </div>
-
-      <div class="table-box mb-5">
-        <div class="p-4 border-bottom d-flex flex-wrap justify-content-between align-items-center bg-white" style="gap: 15px;">
-          <h5 class="fw-bold m-0 text-navy d-flex align-items-center">
-            <div class="bg-primary-subtle text-primary rounded p-2 me-3"><i class="fas fa-list-ul fa-fw"></i></div>
-            Ringkasan Detail Laporan Mingguan
-          </h5>
-          <div class="input-group" style="max-width: 300px;">
-            <span class="input-group-text bg-light border-end-0 text-slate"><i class="fas fa-search"></i></span>
-            <input type="text" class="form-control border-start-0 bg-light" placeholder="Cari aktivitas..." onkeyup="filterTable(this.value)">
-          </div>
-        </div>
-        <div class="table-desktop">
-          <table class="table mb-0" style="table-layout: fixed; width: 100%;">
-            <thead>
-              <tr>
-                <th class="ps-4" style="width: 25%;">DESKRIPSI PEKERJAAN</th>
-                <th style="width: 15%;">CAPAIAN KINERJA</th>
-                <th class="text-center" style="width: 12%;">BATAS WAKTU</th>
-                <th style="width: 16%;">CATATAN STRATEGIS</th>
-                <th style="width: 15%;">EVALUASI MINGGUAN</th>
-                <th class="pe-4" style="width: 17%;">RENCANA AKSI (NEXT)</th>
-              </tr>
-            </thead>
-            <tbody id="publicTableBody"></tbody>
-          </table>
-        </div>
-        <div id="mobileList"></div>
-      </div>
+    <!-- RIGHT MAIN PANEL -->
+    <div class="main-panel">
       
-    </div> 
-  </main>
+      <!-- TOP HEADER -->
+      <header class="topbar-modern">
+        <div>
+          <h4 class="fw-800 m-0 text-navy" style="letter-spacing: -0.5px;">Dashboard Weekly Report</h4>
+          <div class="small text-slate mt-0.5">Konsolidasi laporan progres mingguan divisi sebagai instrumen akuntabilitas kinerja & keputusan strategis pimpinan.</div>
+        </div>
+        <div class="d-flex align-items-center gap-4">
+          
+          <div class="position-relative cursor-pointer bell-notification-btn d-flex align-items-center justify-content-center p-2" 
+               data-bs-toggle="modal" 
+               data-bs-target="#updateModal" 
+               title="Riwayat Pembaruan" 
+               style="cursor: pointer; width: 38px; height: 38px;">
+            <i class="far fa-bell text-slate fs-5 transition-all"></i>
+            <span id="updateBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style="font-size: 0.55rem;">0</span>
+          </div>
+
+          <!-- LOGIN / USER BADGE -->
+          <div>
+            <button class="btn btn-primary rounded-3 px-4 py-2 fw-bold text-sm d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#loginModal" id="loginBtn">
+              <i class="fas fa-user-lock"></i> LOGIN
+            </button>
+            <div id="userBadge" class="d-none d-flex align-items-center gap-2 border rounded-pill p-1 pe-2 bg-light shadow-sm">
+              <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:28px; height:28px;">
+                <i class="fas fa-user"></i>
+              </div>
+              <span id="userNameDisplay" class="fw-bold text-navy small me-1">ADMIN</span>
+              <button class="btn btn-sm btn-light border-0 rounded-circle text-danger p-0 d-flex align-items-center justify-content-center hover-bg-danger-subtle ms-1" onclick="handleLogout()" title="Keluar / Logout" style="width:28px; height:28px;">
+                <i class="fas fa-power-off" style="font-size:0.8rem;"></i>
+              </button>
+            </div>
+          </div>
+          
+        </div>
+      </header>
+
+      <!-- ============================================== -->
+      <!-- VIEW 1: DASHBOARD EXACT IMAGE LAYOUT REPLICA   -->
+      <!-- ============================================== -->
+      <main id="homeView" class="p-4 pb-5">
+        
+        <!-- ROW 1: 4 KPI CARDS -->
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-sm-6 col-xl-3">
+            <div class="kpi-card-solid" onclick="sendTotalWA()">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="text-navy fw-bold text-uppercase" style="font-size:0.75rem; letter-spacing:0.5px;">TOTAL AKTIVITAS</div>
+                <div class="kpi-icon-soft bg-primary-subtle text-primary"><i class="fas fa-wave-square"></i></div>
+              </div>
+              <div class="fw-800 text-navy mb-2" id="kpi-total" style="font-size: 2rem; line-height: 1;">0</div>
+              <div class="small fw-bold text-success" style="font-size: 0.75rem;"><i class="fas fa-arrow-up me-1"></i> <span id="trend-total">Realtime</span> <span class="text-slate fw-normal">dari minggu lalu</span></div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-xl-3">
+            <div class="kpi-card-solid" onclick="sendOverdueWA()">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="text-navy fw-bold text-uppercase" style="font-size:0.75rem; letter-spacing:0.5px;">OVERDUE</div>
+                <div class="kpi-icon-soft bg-danger-subtle text-danger"><i class="fas fa-exclamation-triangle"></i></div>
+              </div>
+              <div class="fw-800 text-navy mb-2" id="kpi-overdue" style="font-size: 2rem; line-height: 1;">0</div>
+              <div class="small fw-bold text-danger" style="font-size: 0.75rem;"><i class="fas fa-arrow-up me-1"></i> Alert <span class="text-slate fw-normal">dari minggu lalu</span></div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-xl-3">
+            <div class="kpi-card-solid">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="text-navy fw-bold text-uppercase" style="font-size:0.75rem; letter-spacing:0.5px;">ON PROGRESS</div>
+                <div class="kpi-icon-soft text-success" style="background:#D1FAE5;"><i class="fas fa-check-circle"></i></div>
+              </div>
+              <div class="fw-800 text-navy mb-2" id="kpi-running" style="font-size: 2rem; line-height: 1;">0</div>
+              <div class="small fw-bold text-slate" style="font-size: 0.75rem;"><span class="text-navy fw-bold">0%</span> dari minggu lalu</div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-xl-3">
+            <div class="kpi-card-solid">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="text-navy fw-bold text-uppercase" style="font-size:0.75rem; letter-spacing:0.5px;">COMPLETED</div>
+                <div class="kpi-icon-soft bg-warning-subtle text-warning"><i class="fas fa-check-double"></i></div>
+              </div>
+              <div class="fw-800 text-navy mb-2" id="kpi-completed" style="font-size: 2rem; line-height: 1;">0</div>
+              <div class="small fw-bold text-slate" style="font-size: 0.75rem;"><span class="text-navy fw-bold">0%</span> dari minggu lalu</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 2: MAP, BAR CHART, PIE CHART (100% PERFECT EQUAL HEIGHT & BOTTOM ALIGNED) -->
+        <div class="row g-3 mb-4 align-items-stretch">
+          <!-- KIRI: PETA -->
+          <div class="col-xl-5 d-flex flex-column">
+            <div class="chart-card flex-grow-1 d-flex flex-column p-4 h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold m-0 text-navy">Pemetaan Geografis Wilayah Kerja</h6>
+                <button class="btn btn-sm btn-light border px-3 fw-bold text-navy bg-white shadow-sm" style="font-size: 0.75rem;"><i class="fas fa-external-link-alt me-1"></i> Lihat Detail</button>
+              </div>
+              <div class="map-container-relative flex-grow-1 rounded-3 overflow-hidden" id="mapContainer" style="min-height: 260px; height: 100%; position:relative;">
+                <div id="map3d" style="position:absolute; top:0; left:0; width:100%; height:100%;"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- KANAN KELOMPOK (BAR CHART & PIE CHART) -->
+          <div class="col-xl-7 d-flex flex-column">
+            <div class="row g-3 h-100 align-items-stretch flex-grow-1">
+              <!-- TENGAH: BAR CHART -->
+              <div class="col-md-7 d-flex flex-column">
+                <div class="chart-card flex-grow-1 d-flex flex-column p-4 h-100">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold m-0 text-navy">Beban Kerja per Divisi</h6>
+                    <div class="border rounded px-2 py-1 bg-light small text-slate fw-bold"><i class="fas fa-chart-bar me-1"></i> Distribusi <i class="fas fa-chevron-down ms-1"></i></div>
+                  </div>
+                  <div class="small text-slate fw-bold mb-2" style="font-size: 0.65rem;">DIVISI</div>
+                  <div class="flex-grow-1 position-relative d-flex align-items-center" style="min-height: 220px; height: 100%;"><canvas id="mainBarChart"></canvas></div>
+                </div>
+              </div>
+              <!-- KANAN: PIE CHART (CLEAN NON-OVERLAPPING CONTAINER) -->
+              <div class="col-md-5 d-flex flex-column">
+                <div class="chart-card flex-grow-1 d-flex flex-column p-4 h-100">
+                  <h6 class="fw-bold m-0 text-navy mb-2">Status Progres</h6>
+                  <div class="flex-grow-1 position-relative d-flex flex-column justify-content-center align-items-center" style="min-height: 230px; height: 100%;">
+                     <div style="height: 210px; width: 100%; position:relative;" class="d-flex align-items-center justify-content-center">
+                       <canvas id="mainPieChart"></canvas>
+                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 3: LINE CHART -->
+        <div class="chart-card p-4 mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <div>
+              <h6 class="fw-bold m-0 text-navy">Tren Capaian Historis</h6>
+              <div class="small text-slate mt-1" style="font-size:0.75rem;">Akumulasi pekerjaan berstatus "Done" per bulan</div>
+            </div>
+            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1.5 border border-success-subtle fw-bold"><i class="fas fa-chart-line me-1"></i> Data Aktivitas <i class="fas fa-chevron-down ms-1"></i></span>
+          </div>
+          <div style="height: 220px; position:relative;"><canvas id="rekapLineChart"></canvas></div>
+        </div>
+
+        <!-- ROW 4: SUMMARY SECTION (100% PERFECT SYMMETRICAL GRID) -->
+        <div class="chart-card p-4 mb-5">
+          <h6 class="fw-800 text-navy text-uppercase mb-4" style="font-size: 0.78rem; letter-spacing: 1px;">RINGKASAN MINGGUAN</h6>
+          <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3 align-items-stretch">
+            
+            <!-- 1. AKTIVITAS BARU -->
+            <div class="col d-flex">
+              <div class="w-100 p-2.5 d-flex align-items-center gap-3">
+                <div class="bg-primary-subtle text-primary p-3 rounded-3 flex-shrink-0"><i class="far fa-calendar-plus fs-5"></i></div>
+                <div>
+                  <div class="text-navy fw-bold" style="font-size: 0.82rem;">Aktivitas Baru</div>
+                  <div class="fs-3 fw-800 text-navy lh-1 mt-1" id="sum-baru">0</div>
+                  <div class="text-success small fw-bold mt-1" style="font-size:0.65rem;"><i class="fas fa-arrow-up"></i> <span id="sum-baru-pct">0%</span> <span class="text-slate fw-normal">dari minggu lalu</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. AKTIVITAS SELESAI -->
+            <div class="col d-flex">
+              <div class="w-100 p-2.5 d-flex align-items-center gap-3 border-start-adaptive">
+                <div class="text-success p-3 rounded-3 flex-shrink-0" style="background:#D1FAE5;"><i class="far fa-check-circle fs-5"></i></div>
+                <div>
+                  <div class="text-navy fw-bold" style="font-size: 0.82rem;">Aktivitas Selesai</div>
+                  <div class="fs-3 fw-800 text-navy lh-1 mt-1" id="sum-selesai">0</div>
+                  <div class="text-slate small mt-1" style="font-size:0.65rem;"><span class="fw-bold text-navy" id="sum-selesai-pct">0%</span> dari minggu lalu</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. RATA-RATA PENYELESAIAN -->
+            <div class="col d-flex">
+              <div class="w-100 p-2.5 d-flex align-items-center gap-3 border-start-adaptive">
+                <div class="p-3 rounded-3 flex-shrink-0" style="background:rgba(99,102,241,0.1) !important; color:#6366f1 !important;"><i class="fas fa-chart-line fs-5"></i></div>
+                <div>
+                  <div class="text-navy fw-bold" style="font-size: 0.82rem;">Rata-rata Penyelesaian</div>
+                  <div class="fs-3 fw-800 text-navy lh-1 mt-1" id="sum-rata">0%</div>
+                  <div class="text-slate small mt-1" style="font-size:0.65rem;"><span class="fw-bold text-navy" id="sum-rata-pct">0%</span> dari minggu lalu</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. DIVISI AKTIF -->
+            <div class="col d-flex">
+              <div class="w-100 p-2.5 d-flex align-items-center gap-3 border-start-adaptive">
+                <div class="bg-warning-subtle text-warning p-3 rounded-3 flex-shrink-0"><i class="far fa-building fs-5"></i></div>
+                <div>
+                  <div class="text-navy fw-bold" style="font-size: 0.82rem;">Divisi Aktif</div>
+                  <div class="fs-3 fw-800 text-navy lh-1 mt-1" id="sum-divisi">0</div>
+                  <div class="text-slate small mt-1" style="font-size:0.65rem;"><span class="fw-bold text-navy" id="sum-divisi-pct">0%</span> dari minggu lalu</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. WILAYAH AKTIF -->
+            <div class="col d-flex">
+              <div class="summary-wilayah-card w-100 p-2.5 rounded-3 d-flex align-items-center justify-content-between border-start-adaptive">
+                <div>
+                  <div class="text-slate fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px;">WILAYAH AKTIF</div>
+                  <div class="fs-2 fw-800 text-navy lh-1 mt-1" id="sum-wilayah">0</div>
+                  <div class="text-slate small mt-1" style="font-size:0.72rem;">Wilayah</div>
+                </div>
+                <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 ms-2" style="width: 42px; height: 42px;">
+                  <i class="fas fa-globe-asia fs-5"></i>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </main>
+
+      <!-- VIEW 2: MATRIKS DIVISI -->
+      <main id="divisionView" class="d-none p-4">
+        <div class="chart-card mb-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="fw-800 text-navy m-0 mb-1"><i class="fas fa-building text-primary me-2"></i>Matriks Kinerja Divisi</h4>
+            <p class="text-slate m-0 small">Ringkasan akumulasi task, pekerjaan berjalan, dan status overdue berdasarkan divisi.</p>
+          </div>
+          <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 fw-bold" id="divisionCountBadge">0 Divisi Aktif</span>
+        </div>
+        <div class="row g-4" id="divisionCardGrid"></div>
+      </main>
+
+      <!-- VIEW 3: DETAIL LAPORAN -->
+      <main id="tableView" class="d-none p-4">
+        
+        <!-- MODULE: FILTER COMMAND CENTER -->
+        <div class="chart-card p-4 mb-4">
+          <h6 class="fw-bold text-navy mb-3 text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">
+            <i class="fas fa-filter text-primary me-2"></i> Filter Data Laporan
+          </h6>
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label small fw-bold text-slate mb-1">Divisi Terkait</label>
+              <select id="filterDivisi" class="form-select bg-light border-0 shadow-none py-2" style="cursor:pointer;" onchange="applyGlobalFilters()">
+                <option value="All">Semua Divisi</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-bold text-slate mb-1">Wilayah Kerja</label>
+              <select id="filterWilayah" class="form-select bg-light border-0 shadow-none py-2" style="cursor:pointer;" onchange="applyGlobalFilters()">
+                <option value="All">Semua Wilayah</option>
+                <option value="PGE">PGE</option>
+                <option value="ITA">ITA</option>
+                <option value="BENTU">BENTU</option>
+                <option value="TONGA">TONGA</option>
+                <option value="GEBANG">GEBANG</option>
+                <option value="SIAK">SIAK</option>
+                <option value="KAMPAR">KAMPAR</option>
+                <option value="ACEH ENERGI">ACEH ENERGI</option>
+                <option value="JAKARTA">JAKARTA</option>
+                <option value="S-CPP">S-CPP</option>
+                <option value="KORINCI BARU">KORINCI BARU</option>
+                <option value="MULTI">MULTI</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-bold text-slate mb-1">Status Progres</label>
+              <select id="filterStatus" class="form-select bg-light border-0 shadow-none py-2" style="cursor:pointer;" onchange="applyGlobalFilters()">
+                <option value="All">Semua Status</option>
+                <option value="On Progress">On Progress</option>
+                <option value="Overdue">Overdue</option>
+                <option value="Done">Completed</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-light border w-100 fw-bold shadow-sm py-2 text-danger hover-bg-light" onclick="resetFilters()">
+                <i class="fas fa-sync-alt me-2"></i>Reset Filter
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODULE: DATA TABLE -->
+        <div class="chart-card p-0 overflow-hidden mb-5">
+          <div class="p-4 border-bottom d-flex flex-wrap justify-content-between align-items-center bg-white" style="gap: 15px;">
+            <h5 class="fw-bold m-0 text-navy d-flex align-items-center">
+              <div class="bg-primary-subtle text-primary rounded p-2 me-3"><i class="fas fa-list-ul fa-fw"></i></div>
+              Ringkasan Detail Laporan Mingguan
+            </h5>
+            <div class="input-group" style="max-width: 350px;">
+              <span class="input-group-text bg-light border-end-0 text-slate"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control border-start-0 bg-light shadow-none" placeholder="Cari aktivitas atau divisi..." onkeyup="filterTable(this.value)">
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table mb-0 table-hover" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th class="ps-4" style="width: 25%;">DESKRIPSI PEKERJAAN</th>
+                  <th style="width: 15%;">CAPAIAN KINERJA</th>
+                  <th class="text-center" style="width: 12%;">BATAS WAKTU</th>
+                  <th style="width: 16%;">CATATAN STRATEGIS</th>
+                  <th style="width: 15%;">EVALUASI MINGGUAN</th>
+                  <th class="pe-4" style="width: 17%;">RENCANA AKSI (NEXT)</th>
+                </tr>
+              </thead>
+              <tbody id="publicTableBody"></tbody>
+            </table>
+          </div>
+          <div id="mobileList"></div>
+        </div>
+      </main>
+
+      <!-- VIEW 4: AUTH & MANAGEMENT -->
+      <main id="authView" class="d-none p-4">
+        <div class="chart-card mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <div>
+            <h4 class="fw-800 m-0 text-navy mb-1"><i class="fas fa-database text-primary me-2"></i>Manajemen Data Laporan</h4>
+            <p class="text-slate m-0 small">Perbarui progres pekerjaan divisi Anda secara berkala.</p>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-light border fw-bold btn-sm d-flex align-items-center gap-2 text-slate" onclick="openPasswordModal()">
+              <i class="fas fa-key"></i> Ganti Password
+            </button>
+            <button id="adminUserBtn" class="btn btn-outline-primary btn-sm d-none align-items-center gap-2 fw-bold" onclick="openAdminUserModal()">
+              <i class="fas fa-user-plus"></i> Kelola User
+            </button>
+            <button class="btn bg-primary text-white fw-bold btn-sm shadow-sm d-flex align-items-center gap-2" onclick="openForm()">
+              <i class="fas fa-plus-circle"></i> Laporan Baru
+            </button>
+          </div>
+        </div>
+        <div class="chart-card p-0 overflow-hidden mb-5">
+          <div class="table-responsive">
+            <table class="table align-middle table-hover m-0" style="width: 100%;">
+              <thead>
+                <tr class="bg-light">
+                  <th class="ps-4 py-3 text-slate small fw-bold text-uppercase">Detail Pekerjaan</th>
+                  <th class="py-3 text-slate small fw-bold text-uppercase">Status Utama</th>
+                  <th class="py-3 text-slate small fw-bold text-uppercase">Persentase</th>
+                  <th class="py-3 text-slate small fw-bold text-uppercase">Target Selesai</th>
+                  <th class="pe-4 py-3 text-end text-slate small fw-bold text-uppercase">Aksi Manajemen</th>
+                </tr>
+              </thead>
+              <tbody id="authTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+    </div>
+  </div>
 
   <!-- HALAMAN MANAJEMEN (AUTH ONLY) -->
   <main id="authView" class="d-none container py-5 mt-4">
@@ -936,7 +1447,7 @@
   <!-- MODAL LOGIN -->
   <div class="modal fade" id="loginModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 p-4 shadow-lg" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);">
+      <div class="modal-content p-4 shadow-lg">
         <div class="text-center mb-4 pt-2">
             <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
                 <i class="fas fa-chart-bar fs-2"></i>
@@ -1469,6 +1980,7 @@
     let chartPie = null;
     let chartLine = null;
     let mapInstance = null;
+    let mapTileLayer = null;
     let markerRegistry = {};
 
     function formatToDdmmyy(dateStr) {
@@ -1489,19 +2001,19 @@
       document.getElementById('loadingMsg').innerText = msg;
       document.getElementById('loadingOverlay').style.display = 'flex'; 
 
-      // Safety Guardrail: Batas maksimal loading disesuaikan menjadi 20 detik untuk mengakomodasi latensi server GAS
+      // Safety Guardrail: Batas maksimal loading disesuaikan menjadi 30 detik
       if (globalLoadingTimeout) clearTimeout(globalLoadingTimeout);
       globalLoadingTimeout = setTimeout(() => {
         const overlay = document.getElementById('loadingOverlay');
         if (overlay && overlay.style.display !== 'none') {
           endLoading();
           Swal.fire({
-            title: 'Koneksi Jaringan Tidak Stabil',
+            title: 'Koneksi Jaringan Lambat',
             html: `<div class="text-center small text-slate">
                      Sistem membutuhkan waktu lebih lama dari biasanya untuk terhubung ke server.<br><br>
                      Silakan periksa sambungan internet Anda dan coba muat ulang data.
                    </div>`,
-            icon: 'wifi',
+            icon: 'warning',
             iconColor: '#F59E0B',
             confirmButtonText: '<i class="fas fa-sync-alt me-2"></i>Coba Lagi',
             confirmButtonColor: '#3B82F6',
@@ -1512,17 +2024,14 @@
       
       const tBox = document.getElementById('telemetryBox');
       const logs = [
-        "LAUNCHING SECURE ENTERNET ENGINE PROTOCOL...",
-        "ESTABLISHING SECURE GAS GATEWAY ENGINE RPC...",
-        "DECRYPTING RBAC SECURITY ATTRIBUTE VALUES...",
-        "COMPILING TRANSACTION ARCHIVE FROM DATALAYER...",
-        "CONNECTING TO CLOUD HCS & GPA DATABASE MATRIX...",
-        "HYDRATING SPATIAL INDICES ON OPENSTREETMAP...",
-        "RESOLVING KERNEL ENGINEERING KNOWLEDGE CONSENSUS...",
-        "EASE-OS APP LAYOUT FRAMEWORK HYDRATION SUCCESS...",
-        "GENERATING HIGH-FIDELITY INFRASTRUCTURE CANVASES...",
-        "HARDWARE DEPLOYMENT VALIDATION COMPLETED...",
-        "SYSTEM STABILIZATION STATE ACTIVE: READY TO ACCESS"
+        "MEMULAI SCANNING SISTEM KEAMANAN TERPADU...",
+        "SCANNING INTEGRITAS DATA & ENKRIPSI DATABASE...",
+        "MEMERIKSA PROTOKOL PERLINDUNGAN AKSES USER...",
+        "VERIFIKASI ENKRIPSI DENGAN DEKRIPSI SERTIFIKAT...",
+        "SCANNING KEAMANAN SELESAI: STATUS SISTEM AMAN 100%...",
+        "MENELUSURI ATRIBUT HAK AKSES & ATURAN ROLE USER...",
+        "VERIFIKASI OTENTIKASI & KONEKSI CLOUD SERVER...",
+        "SISTEM TERPROTEKSI & SIAP DIGUNAKAN..."
       ];
       
       if (tBox) {
@@ -1566,6 +2075,14 @@
     }
 
     window.onload = () => {
+      // INIT THEME ENGINE
+      const savedTheme = localStorage.getItem('theme_preference');
+      if (savedTheme === 'dark') {
+          document.body.setAttribute('data-theme', 'dark');
+          const tgl = document.getElementById('themeToggle');
+          if(tgl) tgl.checked = true;
+      }
+
       const saved = localStorage.getItem('executive_auth');
       if (saved) { 
         currentUser = JSON.parse(saved); 
@@ -1573,14 +2090,30 @@
       }
       refreshData();
       initOperationalMap();
-
-      // PWA Service Worker Hook Registration
-      if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/sw.js')
-              .then(reg => console.log('HCS-PWA: Service Worker Aktif di scope:', reg.scope))
-              .catch(err => console.error('HCS-PWA: Kegagalan Registrasi:', err));
-      }
     };
+
+    function toggleTheme(el) {
+        const isDark = el.checked;
+        if (isDark) {
+            document.body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme_preference', 'dark');
+        } else {
+            document.body.removeAttribute('data-theme');
+            localStorage.setItem('theme_preference', 'light');
+        }
+        
+        // HOT-SWAP LEAFLET TILE LAYER DYNAMICALLY
+        if (mapInstance && mapTileLayer) {
+            mapInstance.removeLayer(mapTileLayer);
+            const tileUrl = isDark 
+                ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
+                : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+            mapTileLayer = L.tileLayer(tileUrl, { maxZoom: 20 }).addTo(mapInstance);
+        }
+
+        // Force refresh charts so the font colors adapt to the new background
+        applyGlobalFilters(); 
+    }
 
     function applyAuthUI() {
       if (!currentUser) return;
@@ -1622,15 +2155,35 @@
       
       google.script.run
         .withSuccessHandler(res => {
-          endLoading();
           btnSubmit.disabled = false;
           if (res.success) { 
             currentUser = res.user; 
             localStorage.setItem('executive_auth', JSON.stringify(currentUser)); 
-            bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide(); 
+            
+            const modalEl = document.getElementById('loginModal');
+            if (modalEl) {
+              const modal = bootstrap.Modal.getInstance(modalEl);
+              if (modal) modal.hide();
+            }
+            
             applyAuthUI(); 
             refreshData(); 
+
+            // TAMPILKAN OVERLAY LOADING DENGAN PESAN "BISMILLAH, SEHAT SELALU"
+            startLoading("BISMILLAH, SEHAT SELALU");
+            setTimeout(() => {
+              endLoading();
+              Swal.fire({
+                title: 'Login Berhasil',
+                text: 'BISMILLAH, SEHAT SELALU - Selamat bekerja, ' + (currentUser.nama || currentUser.name || ''),
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false,
+                customClass: { popup: 'rounded-4' }
+              });
+            }, 1500);
           } else { 
+            endLoading();
             Swal.fire('Gagal', res.message, 'error'); 
           }
         })
@@ -1651,15 +2204,326 @@
       refreshData();
     }
 
-    // Routing Aman dengan Enforce Hak Akses Sesi
+    // ROUTING ENGINE (MENGATUR SIDEBAR ACTIVE STATE & LEAFLET RESIZE)
     function switchView(view) {
       if (view === 'auth' && !localStorage.getItem('executive_auth')) {
         Swal.fire('Akses Ditolak', 'Sesi Anda tidak valid. Silakan melakukan login ulang.', 'warning');
         view = 'home';
       }
-      document.getElementById('homeView').classList.toggle('d-none', view !== 'home');
-      document.getElementById('authView').classList.toggle('d-none', view !== 'auth');
-      if (view === 'home') applyGlobalFilters();
+
+      document.getElementById('homeView').classList.add('d-none');
+      document.getElementById('divisionView').classList.add('d-none');
+      document.getElementById('tableView').classList.add('d-none');
+      document.getElementById('authView').classList.add('d-none');
+
+      // Reset Sidebar Menu Styles
+      const menus = ['home', 'division', 'table'];
+      menus.forEach(m => {
+          const el = document.getElementById('nav-' + m);
+          if (el) el.classList.remove('active');
+      });
+      const activeNav = document.getElementById('nav-' + view);
+      if (activeNav) activeNav.classList.add('active');
+
+      if (view === 'home') {
+        document.getElementById('homeView').classList.remove('d-none');
+        applyGlobalFilters();
+        // Paksa Map menyesuaikan ulang kontainernya agar tidak pecah/kosong saat div ditampilkan
+        setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 300);
+      } else if (view === 'division') {
+        document.getElementById('divisionView').classList.remove('d-none');
+        renderDivisionCards();
+      } else if (view === 'table') {
+        document.getElementById('tableView').classList.remove('d-none');
+        applyGlobalFilters();
+      } else if (view === 'auth') {
+        document.getElementById('authView').classList.remove('d-none');
+      }
+    }
+
+    function renderDivisionCards() {
+      const grid = document.getElementById('divisionCardGrid');
+      const badge = document.getElementById('divisionCountBadge');
+      if (!grid) return;
+
+      if (!allData || allData.length === 0) {
+        grid.innerHTML = '<div class="col-12 text-center py-5 text-slate"><i class="fas fa-inbox fa-3x mb-3 opacity-25"></i><br>Tidak ada data divisi tersedia.</div>';
+        return;
+      }
+
+      const divMetrics = {};
+      allData.forEach(item => {
+        if (!item.Aktivitas || item.Aktivitas.toString().trim() === "") return;
+        const div = (item.Divisi || "Lainnya").trim();
+        if (!divMetrics[div]) divMetrics[div] = { total: 0, onProgress: 0, overdue: 0 };
+        divMetrics[div].total += 1;
+        const status = getLogicStatus(item).label;
+        if (status === "Overdue") divMetrics[div].overdue += 1;
+        else if (status === "On Progress") divMetrics[div].onProgress += 1;
+      });
+
+      const divisions = Object.keys(divMetrics).sort();
+      if(badge) badge.innerText = `${divisions.length} Divisi Aktif`;
+
+      let htmlCards = '';
+      divisions.forEach(div => {
+        const m = divMetrics[div];
+        htmlCards += `
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="chart-card h-100 p-4 transition-all d-flex flex-column">
+              <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="rounded-3 p-3 text-primary bg-primary-subtle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;"><i class="fas fa-building fa-lg"></i></div>
+                <div><h5 class="fw-bold text-navy m-0" style="font-size: 1.1rem;">${div}</h5><span class="text-slate small" style="font-size: 0.75rem;">Divisi Operasional</span></div>
+              </div>
+              <div class="row g-2 text-center mb-3">
+                <div class="col-4"><div class="p-2 rounded-3 bg-light border"><div class="text-slate fw-bold" style="font-size: 0.65rem;">TOTAL</div><div class="fw-800 text-navy fs-5">${m.total}</div></div></div>
+                <div class="col-4"><div class="p-2 rounded-3 bg-success-subtle border border-success-subtle"><div class="text-success fw-bold" style="font-size: 0.65rem;">PROGRES</div><div class="fw-800 text-success fs-5">${m.onProgress}</div></div></div>
+                <div class="col-4"><div class="p-2 rounded-3 bg-danger-subtle border border-danger-subtle"><div class="text-danger fw-bold" style="font-size: 0.65rem;">OVERDUE</div><div class="fw-800 text-danger fs-5">${m.overdue}</div></div></div>
+              </div>
+              <div class="mt-auto pt-3 border-top text-center">
+                <span class="hover-lihat-detail fw-bold d-inline-block" 
+                      style="font-size: 0.75rem; cursor: pointer;" 
+                      onclick="filterByDivisionCard('${div}')">
+                  <i class="fas fa-external-link-alt me-2"></i>Lihat Detail
+                </span>
+              </div>
+            </div>
+          </div>`;
+      });
+      grid.innerHTML = htmlCards;
+    }
+
+    function filterByDivisionCard(divName) {
+      const selectDiv = document.getElementById('filterDivisi');
+      if (selectDiv) selectDiv.value = divName;
+      switchView('table');
+    }
+
+    // CUSTOM INLINE PLUGIN: MENAMPILKAN ANGKA DI UJUNG BATANG BAR CHART
+    const barLabelPlugin = {
+      id: 'barLabels',
+      afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        
+        chart.data.datasets.forEach((dataset, i) => {
+          const meta = chart.getDatasetMeta(i);
+          if (!meta.hidden) {
+            meta.data.forEach((element, index) => {
+              const dataValue = dataset.data[index];
+              if (dataValue > 0) {
+                ctx.fillStyle = isDark ? '#F8FAFC' : '#0F172A'; // Theme-aware label color
+                ctx.font = 'bold 11px "Plus Jakarta Sans"';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dataValue, element.tooltipPosition().x + 8, element.tooltipPosition().y);
+              }
+            });
+          }
+        });
+      }
+    };
+
+    function refreshCharts(dataToChart) {
+      if(!allData.length && !dataToChart.length) return;
+      
+      const isDark = document.body.getAttribute('data-theme') === 'dark';
+      const themeTextColor = isDark ? '#CBD5E1' : '#1E293B';
+      const themeGridColor = isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9';
+      const themeTitleColor = isDark ? '#F8FAFC' : '#0F172A';
+
+      const results = dataToChart.map(item => getLogicStatus(item).label);
+      const overdueCount = results.filter(r => r === "Overdue").length;
+      const processCount = results.filter(r => r === "On Progress").length;
+      const completedCount = archiveData.length; // Estimasi Data Archive untuk Status Done
+
+      // 1. UPDATE 4 KPI CARDS
+      animateCounter('kpi-total', dataToChart.length);
+      animateCounter('kpi-overdue', overdueCount);
+      animateCounter('kpi-running', processCount);
+      animateCounter('kpi-completed', completedCount); // Menambahkan KPI Completed
+
+      // 2. UPDATE SUMMARY ROW (KALKULASI SENIN - JUMAT MINGGU BERJALAN)
+      const now = new Date();
+      const dayOfWeek = now.getDay(); 
+      const distanceToMon = (dayOfWeek + 6) % 7; 
+      const mondayThisWeek = new Date(now);
+      mondayThisWeek.setDate(now.getDate() - distanceToMon);
+      mondayThisWeek.setHours(0, 0, 0, 0);
+
+      const fridayThisWeek = new Date(mondayThisWeek);
+      fridayThisWeek.setDate(mondayThisWeek.getDate() + 4);
+      fridayThisWeek.setHours(23, 59, 59, 999);
+
+      // Minggu lalu untuk perbandingan tren (%)
+      const mondayLastWeek = new Date(mondayThisWeek);
+      mondayLastWeek.setDate(mondayThisWeek.getDate() - 7);
+      const fridayLastWeek = new Date(fridayThisWeek);
+      fridayLastWeek.setDate(fridayThisWeek.getDate() - 7);
+
+      // 1) Aktivitas Baru (Penambahan Data Baru Senin - Jumat)
+      const aktBaru = dataToChart.filter(i => {
+        if (!i.Timestamp) return false;
+        const d = new Date(i.Timestamp);
+        return d >= mondayThisWeek && d <= fridayThisWeek;
+      }).length;
+
+      const aktBaruLast = dataToChart.filter(i => {
+        if (!i.Timestamp) return false;
+        const d = new Date(i.Timestamp);
+        return d >= mondayLastWeek && d <= fridayLastWeek;
+      }).length;
+
+      const pctBaruTrend = aktBaruLast > 0 ? Math.round(((aktBaru - aktBaruLast) / aktBaruLast) * 100) : (aktBaru > 0 ? 100 : 0);
+
+      // 2) Aktivitas Selesai (Task diubah menjadi Done)
+      const aktSelesai = archiveData.filter(i => {
+        if (!i.Timestamp && !i.Tanggal_Selesai) return true;
+        const d = new Date(i.Timestamp || i.Tanggal_Selesai);
+        return d >= mondayThisWeek && d <= fridayThisWeek;
+      }).length;
+
+      const aktSelesaiLast = archiveData.filter(i => {
+        if (!i.Timestamp && !i.Tanggal_Selesai) return false;
+        const d = new Date(i.Timestamp || i.Tanggal_Selesai);
+        return d >= mondayLastWeek && d <= fridayLastWeek;
+      }).length;
+
+      const pctSelesaiTrend = aktSelesaiLast > 0 ? Math.round(((aktSelesai - aktSelesaiLast) / aktSelesaiLast) * 100) : 0;
+
+      // 3) Rata-rata Penyelesaian (Rasio Selesai / Total Task Minggu Berjalan)
+      const totalWeekTasks = aktBaru + aktSelesai;
+      const ratePenyelesaian = totalWeekTasks > 0 ? Math.round((aktSelesai / totalWeekTasks) * 100) : 0;
+
+      // 4) Divisi Aktif (Divisi yang melakukan aktivitas / login minggu berjalan)
+      const setDiv = new Set();
+      dataToChart.forEach(i => { if (i.Divisi) setDiv.add(i.Divisi.trim()); });
+      
+      // 5) Wilayah Aktif
+      const setWil = new Set();
+      dataToChart.forEach(i => { if (i.Wilayah_Kerja && i.Wilayah_Kerja.trim() !== "") setWil.add(i.Wilayah_Kerja.trim()); });
+
+      // Injeksi Nilai ke DOM HTML
+      const elBaru = document.getElementById('sum-baru'); if (elBaru) elBaru.innerText = aktBaru;
+      const elBaruPct = document.getElementById('sum-baru-pct'); if (elBaruPct) elBaruPct.innerText = (pctBaruTrend >= 0 ? '+' : '') + pctBaruTrend + '%';
+
+      const elSels = document.getElementById('sum-selesai'); if (elSels) elSels.innerText = aktSelesai;
+      const elSelsPct = document.getElementById('sum-selesai-pct'); if (elSelsPct) elSelsPct.innerText = (pctSelesaiTrend >= 0 ? '+' : '') + pctSelesaiTrend + '%';
+
+      const elRata = document.getElementById('sum-rata'); if (elRata) elRata.innerText = ratePenyelesaian + '%';
+      const elRataPct = document.getElementById('sum-rata-pct'); if (elRataPct) elRataPct.innerText = ratePenyelesaian + '%';
+
+      const elDiv = document.getElementById('sum-divisi'); if (elDiv) elDiv.innerText = setDiv.size;
+      const elWil = document.getElementById('sum-wilayah'); if (elWil) elWil.innerText = setWil.size;
+
+      // 3. BAR CHART ENGINE (DENGAN CUSTOM PLUGIN LABELS)
+      const divCounts = {};
+      dataToChart.forEach(it => { divCounts[it.Divisi] = (divCounts[it.Divisi] || 0) + 1; });
+      const ctxBar = document.getElementById('mainBarChart').getContext('2d');
+      if (chartBar) chartBar.destroy();
+      
+      // Sorting bar chart dari yang terbesar ke terkecil seperti pada gambar
+      const sortedDivs = Object.keys(divCounts).sort((a,b) => divCounts[b] - divCounts[a]);
+      const sortedData = sortedDivs.map(d => divCounts[d]);
+
+      chartBar = new Chart(ctxBar, {
+        type: 'bar', 
+        data: { 
+            labels: sortedDivs, 
+            datasets: [{ 
+                data: sortedData, 
+                backgroundColor: '#3B82F6', // Solid Blue
+                borderRadius: 4,
+                barThickness: 12,
+            }] 
+        },
+        plugins: [barLabelPlugin], // Memasang Plugin Angka Ujung Batang
+        options: { 
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
+            layout: { padding: { right: 30 } }, 
+            scales: { 
+                x: { display: true, grid: { display: true, color: themeGridColor }, ticks: { font: {size:10, family:'Plus Jakarta Sans'}, color: '#64748B' } },
+                y: { grid: { display: false }, ticks: { font: {size: 10, weight:'700', family:'Plus Jakarta Sans'}, color: themeTextColor, autoSkip: false } }
+            }, 
+            plugins: { legend: { display: false } } 
+        }
+      });
+
+      // 4. DOUGHNUT CHART ENGINE (ON PROGRESS, OVERDUE, COMPLETED - SPASI & LEGEND PRESISI FIX)
+      const ctxPie = document.getElementById('mainPieChart').getContext('2d');
+      if (chartPie) chartPie.destroy();
+
+      const isDarkTheme = document.body.getAttribute('data-theme') === 'dark';
+      const legendTextColor = isDarkTheme ? '#94A3B8' : '#475569';
+      const centerTitleColor = isDarkTheme ? '#F8FAFC' : '#0F172A';
+
+      chartPie = new Chart(ctxPie, {
+        type: 'doughnut', 
+        data: { 
+          labels: ['On Progress', 'Overdue', 'Completed'], 
+          datasets: [{ 
+            data: [processCount, overdueCount, completedCount], 
+            backgroundColor: ['#10B981', '#E11D48', '#F59E0B'], // Hijau, Merah, Kuning
+            borderWidth: 0,
+            hoverOffset: 6
+          }] 
+        },
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false, 
+          cutout: '74%',
+          layout: {
+            padding: { top: 5, bottom: 5 }
+          },
+          plugins: { 
+            legend: { 
+              display: true,
+              position: 'bottom',
+              labels: { 
+                usePointStyle: true, 
+                pointStyle: 'circle', 
+                padding: 18, 
+                boxWidth: 8, 
+                boxHeight: 8,
+                font: { size: 11, weight: '600', family: 'Plus Jakarta Sans, sans-serif' }, 
+                color: legendTextColor 
+              }
+            },
+            tooltip: {
+              backgroundColor: isDarkTheme ? '#0F172A' : '#FFFFFF',
+              titleColor: isDarkTheme ? '#F8FAFC' : '#0F172A',
+              bodyColor: isDarkTheme ? '#CBD5E1' : '#334155',
+              borderColor: isDarkTheme ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
+              borderWidth: 1,
+              padding: 10,
+              boxPadding: 4,
+              usePointStyle: true
+            }
+          }
+        },
+        plugins: [{
+            id: 'centerText',
+            beforeDraw: function(chart) {
+                const width = chart.width, ctx = chart.ctx;
+                ctx.restore(); ctx.textBaseline = "middle";
+                const chartArea = chart.chartArea;
+                const centerY = chartArea ? (chartArea.top + chartArea.bottom) / 2 : chart.height / 2;
+                // Center Title (Angka Total Aktivitas)
+                ctx.font = "800 1.8rem 'Plus Jakarta Sans', sans-serif"; 
+                ctx.fillStyle = centerTitleColor;
+                const text = dataToChart.length.toString();
+                const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                ctx.fillText(text, textX, centerY - 8);
+                // Center Subtext ("AKTIVITAS")
+                ctx.font = "700 0.68rem 'Plus Jakarta Sans', sans-serif"; 
+                ctx.fillStyle = isDarkTheme ? '#94A3B8' : '#64748B';
+                const text2 = "AKTIVITAS";
+                const text2X = Math.round((width - ctx.measureText(text2).width) / 2);
+                ctx.fillText(text2, text2X, centerY + 14);
+                ctx.save();
+            }
+        }]
+      });
     }
 
     // Membangun Skeleton Screen Dinamis Selama Menunggu Respons Server
@@ -1753,17 +2617,98 @@
 
     function populateFilters(divList = []) {
       const filterDivisi = document.getElementById('filterDivisi');
+      const pillContainer = document.getElementById('divisionPillContainer');
+      
       filterDivisi.innerHTML = '<option value="All">Semua Divisi</option>';
+      if (pillContainer) {
+        pillContainer.innerHTML = `
+          <button class="division-pill-item active" data-div="All" onclick="selectDivisionPill('All', this)">
+             <i class="fas fa-layer-group"></i> Semua Divisi
+          </button>
+        `;
+      }
+
       divList.forEach(div => { 
         filterDivisi.innerHTML += `<option value="${div}">${div}</option>`; 
+        if (pillContainer) {
+          pillContainer.innerHTML += `
+            <button class="division-pill-item" data-div="${div}" onclick="selectDivisionPill('${div}', this)">
+               ${div}
+            </button>
+          `;
+        }
       });
     }
 
-    function applyGlobalFilters() {
-      const selectedDivisi = document.getElementById('filterDivisi').value;
-      const selectedWilayah = document.getElementById('filterWilayah').value;
-      const selectedStatus = document.getElementById('filterStatus').value;
+    function selectDivisionPill(divName, btnEl) {
+      // Synchronize Dropdown Selection
+      const filterDivisi = document.getElementById('filterDivisi');
+      if (filterDivisi) filterDivisi.value = divName;
+
+      // Synchronize Active Pill UI
+      const pills = document.querySelectorAll('.division-pill-item');
+      pills.forEach(p => p.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+
+      applyGlobalFilters();
+    }
+
+    function animateCounter(elementId, targetValue) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const startValue = parseInt(el.innerText) || 0;
+      if (startValue === targetValue) return;
+
+      const duration = 600;
+      const startTime = performance.now();
+
+      function updateNumber(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3); // Cubic Ease Out
+        const currentValue = Math.floor(startValue + (targetValue - startValue) * easeProgress);
+        el.innerText = currentValue;
+
+        if (progress < 1) {
+          requestAnimationFrame(updateNumber);
+        } else {
+          el.innerText = targetValue;
+        }
+      }
+      requestAnimationFrame(updateNumber);
+    }
+
+    function resetFilters() {
+      const filterDivisi = document.getElementById('filterDivisi');
+      const filterWilayah = document.getElementById('filterWilayah');
+      const filterStatus = document.getElementById('filterStatus');
       
+      // Kembalikan semua dropdown ke kondisi "Semua"
+      if (filterDivisi) filterDivisi.value = 'All';
+      if (filterWilayah) filterWilayah.value = 'All';
+      if (filterStatus) filterStatus.value = 'All';
+      
+      // Terapkan ulang filter untuk merender ulang tabel dan chart secara utuh
+      applyGlobalFilters();
+    }
+
+    function applyGlobalFilters() {
+      // PENGAMAN (NULL-SAFETY): Mencegah JavaScript Crash jika elemen HTML belum ter-render
+      const elDivisi = document.getElementById('filterDivisi');
+      const elWilayah = document.getElementById('filterWilayah');
+      const elStatus = document.getElementById('filterStatus');
+
+      const selectedDivisi = elDivisi ? elDivisi.value : 'All';
+      const selectedWilayah = elWilayah ? elWilayah.value : 'All';
+      const selectedStatus = elStatus ? elStatus.value : 'All';
+      
+      // Update Pill UI state if dropdown was changed directly
+      const pills = document.querySelectorAll('.division-pill-item');
+      pills.forEach(p => {
+        if (p.getAttribute('data-div') === selectedDivisi) p.classList.add('active');
+        else p.classList.remove('active');
+      });
+
       // LAZY LOADING: Ambil data arsip hanya jika filter "Done" dipilih dan data belum pernah diunduh
       if (selectedStatus === 'Done' && archiveData.length === 0) {
         startLoading("Mengunduh Dokumen Rekap Kegiatan...");
@@ -1772,14 +2717,13 @@
           endLoading();
           applyGlobalFilters(); // Eksekusi ulang filter setelah data terunduh
         }).getArchivedActivities();
-        return; // Hentikan eksekusi sementara, menunggu data server selesai ditarik
+        return; // Hentikan eksekusi sementara
       }
 
       let sourceData = (selectedStatus === 'Done') ? archiveData : allData;
 
       let filtered = sourceData.filter(item => {
-          // PENGAMAN: Abaikan baris kosong (Ghost Rows) dari database
-          if (!item.Aktivitas || item.Aktivitas.toString().trim() === "") return false;
+        if (!item.Aktivitas || item.Aktivitas.toString().trim() === "") return false;
 
         let matchDivisi = true;
         if (selectedDivisi !== 'All') {
@@ -2023,130 +2967,6 @@
         })
         .saveActivity(payload); 
     };
-
-    function refreshCharts(dataToChart) {
-      if(!allData.length && !dataToChart.length) return;
-      const results = dataToChart.map(item => getLogicStatus(item).label);
-      const overdueCount = results.filter(r => r === "Overdue").length;
-      const processCount = results.filter(r => r === "On Progress").length;
-
-      document.getElementById('kpi-total').innerText = dataToChart.length;
-      document.getElementById('kpi-overdue').innerText = overdueCount;
-      document.getElementById('kpi-running').innerText = processCount;
-
-      // Bar Chart - Sleek Horizontal Executive Style
-      const divCounts = {};
-      dataToChart.forEach(it => { divCounts[it.Divisi] = (divCounts[it.Divisi] || 0) + 1; });
-      const ctxBar = document.getElementById('mainBarChart').getContext('2d');
-      if (chartBar) chartBar.destroy();
-      
-      // Mengubah arah gradien ke kanan untuk mendukung tipe horizontal chart
-      const gradientBar = ctxBar.createLinearGradient(0, 0, 400, 0);
-      gradientBar.addColorStop(0, 'rgba(37, 99, 235, 0.95)');  // Royal Deep
-      gradientBar.addColorStop(1, 'rgba(6, 182, 212, 0.4)');    // Cyber Cyan Glow
-
-      chartBar = new Chart(ctxBar, {
-        type: 'bar', 
-        data: { 
-            labels: Object.keys(divCounts), 
-            datasets: [{ 
-                label: 'Volume Distribusi', 
-                data: Object.values(divCounts), 
-                backgroundColor: gradientBar,
-                borderColor: '#2563EB',
-                borderWidth: 1,
-                borderRadius: 8, // Rounded tip edges
-                borderSkipped: false,
-                barThickness: 16, // Lebih tipis dan berkelas
-                hoverBackgroundColor: '#06B6D4'
-            }] 
-        },
-        options: { 
-            indexAxis: 'y', // TRANSDUKSI TOTAL MENUJU HORIZONTAL KELAS ENTERPRISE
-            responsive: true, 
-            maintainAspectRatio: false, 
-            animation: { duration: 1400, easing: 'easeOutExpo' },
-            scales: { 
-                x: { 
-                    beginAtZero: true, 
-                    grid: { color: 'rgba(226, 232, 240, 0.4)', drawBorder: false },
-                    ticks: { font: { family: "'Plus Jakarta Sans'", size: 11, weight: '500' }, color: '#64748B', precision: 0 } 
-                },
-                y: {
-                    grid: { display: false },
-                    ticks: { font: { family: "'Plus Jakarta Sans'", size: 11, weight: '700' }, color: '#1E293B' }
-                }
-            }, 
-            plugins: { 
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#0B1120', padding: 14, cornerRadius: 12,
-                    titleFont: { family: "'Plus Jakarta Sans'", size: 12, weight: '700' },
-                    bodyFont: { family: "'Plus Jakarta Sans'", size: 13 },
-                    displayColors: false
-                }
-            } 
-        }
-      });
-
-      // 2. REFACTORING DOUGHNUT CHART - PREMIUM NEON espec
-      const ctxPie = document.getElementById('mainPieChart').getContext('2d');
-      if (chartPie) chartPie.destroy();
-      chartPie = new Chart(ctxPie, {
-        type: 'doughnut', 
-        data: { 
-          labels: ['On Progress', 'Overdue'], 
-          datasets: [{ 
-            data: [processCount, overdueCount], 
-            backgroundColor: ['#F59E0B', '#E11D48'], 
-            borderWidth: 5,
-            borderColor: '#FFFFFF',
-            hoverOffset: 4
-          }] 
-        },
-        options: { 
-          responsive: true, 
-          maintainAspectRatio: false, 
-          cutout: '82%',
-          plugins: { 
-            legend: { 
-              position: 'bottom',
-              labels: {
-                usePointStyle: true, pointStyle: 'circle', padding: 20,
-                font: { family: "'Plus Jakarta Sans'", size: 11, weight: '700' }, color: '#475569'
-              }
-            },
-            tooltip: {
-              backgroundColor: '#0B1120', padding: 14, cornerRadius: 12,
-              bodyFont: { family: "'Plus Jakarta Sans'", size: 13, weight: '600' }
-            }
-          }
-        },
-        plugins: [{
-            id: 'centerText',
-            beforeDraw: function(chart) {
-                var width = chart.width, height = chart.height, ctx = chart.ctx;
-                ctx.restore();
-                ctx.textBaseline = "middle";
-                
-                ctx.font = "800 2.4rem 'Plus Jakarta Sans'";
-                ctx.fillStyle = "#0F172A";
-                var text = dataToChart.length.toString(),
-                    textX = Math.round((width - ctx.measureText(text).width) / 2),
-                    textY = height / 2.3;
-                ctx.fillText(text, textX, textY);
-                
-                ctx.font = "700 0.75rem 'Plus Jakarta Sans'";
-                ctx.fillStyle = "#94A3B8";
-                var text2 = "AKTIVITAS",
-                    text2X = Math.round((width - ctx.measureText(text2).width) / 2),
-                    text2Y = height / 2.3 + 30;
-                ctx.fillText(text2, text2X, text2Y);
-                ctx.save();
-            }
-        }]
-      });
-    }
 
     function renderLineChart(rekapData) {
       const ctxLine = document.getElementById('rekapLineChart');
@@ -2553,11 +3373,25 @@
           doubleClickZoom: true,
           boxZoom: true,
           touchZoom: true
-        }).setView([0.2, 102.0], 5.3);
+        }).setView([0.8, 101.5], 6);
 
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        // DETEKSI TEMA AKTIF SAAT INISIALISASI PETA
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        const tileUrl = isDark 
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
+            : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+        
+        mapTileLayer = L.tileLayer(tileUrl, {
           maxZoom: 20
         }).addTo(mapInstance);
+
+        // Memicu re-Kalkulasi dimensi peta agar pas dengan tinggi kontainer baru
+        setTimeout(function() {
+          if (mapInstance) {
+            mapInstance.invalidateSize();
+            mapInstance.setView([0.8, 101.5], 6);
+          }
+        }, 300);
 
         markerRegistry = {};
 
@@ -2586,15 +3420,15 @@
             var matchedTarget = coords.find(function (item) { return item.name === activeVal; });
             
             if (matchedTarget) {
-              // Meluncur ke wilayah target dan panggil popup secara otomatis pasca-animasi
-              map.flyTo([matchedTarget.lat, matchedTarget.lng], 8, { animate: true, duration: 1.5 });
+              // DIPERBAIKI: Menggunakan mapInstance, bukan map
+              mapInstance.flyTo([matchedTarget.lat, matchedTarget.lng], 8, { animate: true, duration: 1.5 });
               if (markerRegistry[activeVal]) {
                 markerRegistry[activeVal].openPopup();
               }
             } else if (activeVal === "All") {
-              // Reset visualisasi ke seluruh wilayah kerja dan pastikan seluruh popup tertutup bersih
-              map.flyTo([0.2, 102.0], 5.3, { animate: true, duration: 1.2 });
-              map.closePopup();
+              // DIPERBAIKI: Menggunakan mapInstance, bukan map
+              mapInstance.flyTo([0.2, 102.0], 5.3, { animate: true, duration: 1.2 });
+              mapInstance.closePopup();
             }
           };
         }
