@@ -798,26 +798,62 @@
       box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.4), 0 0 18px #10B981 !important; 
     }
 
-    /* CUSTOM LEAFLET POPUP DESIGN */
+    /* CUSTOM LEAFLET POPUP ADAPTIVE DESIGN (HIGH CONTRAST LIGHT & DARK) */
     .custom-leaflet-popup .leaflet-popup-content-wrapper {
-      background: #FFFFFF;
-      color: #0F172A;
+      background: var(--surface) !important;
+      color: var(--navy) !important;
       border-radius: 12px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-      padding: 6px;
-      border: 1px solid #E2E8F0;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
+      padding: 4px;
+      border: 1px solid var(--border) !important;
     }
     .custom-leaflet-popup .leaflet-popup-tip {
-      background: #FFFFFF;
+      background: var(--surface) !important;
     }
-    [data-theme="dark"] .custom-leaflet-popup .leaflet-popup-content-wrapper {
-      background: #0F172A !important;
-      color: #F8FAFC !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
+    .popup-card-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
     }
-    [data-theme="dark"] .custom-leaflet-popup .leaflet-popup-tip {
-      background: #0F172A !important;
+    .popup-card-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--navy);
+      margin-top: 2px;
+    }
+    .popup-card-sub {
+      font-size: 9px;
+      color: var(--slate);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+    }
+    .popup-stat-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 6px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .popup-stat-label {
+      font-size: 8px;
+      color: var(--slate);
+      font-weight: 700;
+    }
+    .popup-stat-value {
+      font-weight: 800;
+      color: var(--navy);
+      font-size: 14px;
+    }
+    .popup-div-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      margin-bottom: 3px;
+      color: var(--slate);
+    }
+    .popup-div-count {
+      font-weight: 700;
+      color: var(--navy);
     }
     
     /* Perbaikan Aksesibilitas Layer: Menaikkan Panel Popup di Atas Masker Spotlight */
@@ -1055,11 +1091,6 @@
         </div>
         <div class="sidebar-item" id="nav-table" onclick="switchView('table')">
           <i class="fas fa-list-alt fa-fw"></i> Detail Laporan
-        </div>
-        
-        <!-- PWA INSTALL TRIGGER BUTTON (AUTOMATICALLY SHOWN WHEN INSTALLABLE) -->
-        <div class="sidebar-item text-info d-none" id="pwaInstallBtnSidebar" onclick="triggerPwaInstall()">
-          <i class="fas fa-download fa-fw"></i> Install Aplikasi
         </div>
 
         <div class="sidebar-item mt-4 text-danger hover-bg-danger-subtle d-none" id="logoutBtnSidebar" onclick="handleLogout()">
@@ -2032,25 +2063,50 @@
     });
 
     function triggerPwaInstall() {
-      if (!deferredPwaPrompt) {
+      // 1. JIKA EVENT NATIVE TERSEDIA (CHROME DESKTOP / ANDROID)
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('[PWA Engine] Pengguna menyetujui instalasi aplikasi.');
+          }
+          deferredPwaPrompt = null;
+        });
+        return;
+      }
+
+      // 2. DETEKSI PERANGKAT iOS / SAFARI (IPHONE / IPAD)
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      
+      if (isIOS) {
         Swal.fire({
-          title: 'Informasi Instalasi PWA',
-          text: 'Aplikasi sudah terinstal, atau peramban Anda menggunakan mode otomatis. Anda juga dapat menginstal melalui menu titik tiga (⋮) di pojok kanan atas browser.',
+          title: 'Cara Install di iPhone / iPad',
+          html: `<div class="text-start small text-slate lh-lg">
+                   1. Tekan tombol <b>Share</b> (ikon kotak panah ke atas) di bilah bawah browser Safari.<br>
+                   2. Gulir ke bawah dan pilih <b>"Add to Home Screen"</b> (Tambahkan ke Layar Utama).<br>
+                   3. Tekan <b>Add</b> di pojok kanan atas.
+                 </div>`,
           icon: 'info',
+          confirmButtonText: 'Saya Mengerti',
           confirmButtonColor: '#2563EB',
           customClass: { popup: 'rounded-4' }
         });
         return;
       }
-      
-      deferredPwaPrompt.prompt();
-      deferredPwaPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('[PWA Engine] Pengguna menyetujui instalasi aplikasi.');
-          const btnInstall = document.getElementById('pwaInstallBtnSidebar');
-          if (btnInstall) btnInstall.classList.add('d-none');
-        }
-        deferredPwaPrompt = null;
+
+      // 3. FALLBACK PETUNJUK MANUAL CHROME / EDGE DESKTOP & ANDROID
+      Swal.fire({
+        title: 'Panduan Instalasi Aplikasi',
+        html: `<div class="text-start small text-slate lh-lg">
+                 <b>Laptop / Desktop (Chrome & Edge):</b><br>
+                 Klik ikon <b>Install</b> (gambar layar/komputer dengan panah) di ujung kanan URL bar atas, atau klik menu titik tiga (<b>⋮</b>) -> <i>Save and Share</i> -> <i>Install page as app</i>.<br><br>
+                 <b>Perangkat HP Android:</b><br>
+                 Klik menu titik tiga (<b>⋮</b>) di pojok kanan atas browser -> Pilih <b>"Add to Home screen"</b> (Tambahkan ke Layar Utama).
+               </div>`,
+        icon: 'info',
+        confirmButtonText: 'Mengerti',
+        confirmButtonColor: '#2563EB',
+        customClass: { popup: 'rounded-4' }
       });
     }
 
@@ -2174,14 +2230,14 @@
       refreshData();
       initOperationalMap();
 
-      // PWA SERVICE WORKER REGISTRATION & AUTO-UPDATE CHECK
+      // PWA SERVICE WORKER REGISTRATION & AUTO-UPDATE CHECK (ROBUST SCOPE)
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
           .then(reg => {
-            console.log('[PWA Engine] Service Worker registered with scope:', reg.scope);
-            reg.update(); // Paksa periksa pembaruan versi sw.js terbaru
+            console.log('[PWA Engine] Service Worker registered successfully with scope:', reg.scope);
+            reg.update();
           })
-          .catch(err => console.error('[PWA Engine] Registration failed:', err));
+          .catch(err => console.error('[PWA Engine] Service Worker registration failed:', err));
       }
     };
 
@@ -2714,7 +2770,9 @@
       const filterDivisi = document.getElementById('filterDivisi');
       const pillContainer = document.getElementById('divisionPillContainer');
       
-      filterDivisi.innerHTML = '<option value="All">Semua Divisi</option>';
+      if (filterDivisi) {
+        filterDivisi.innerHTML = '<option value="All">Semua Divisi</option>';
+      }
       if (pillContainer) {
         pillContainer.innerHTML = `
           <button class="division-pill-item active" data-div="All" onclick="selectDivisionPill('All', this)">
@@ -2723,12 +2781,23 @@
         `;
       }
 
+      // DAFTAR NAMA AKUN PERSONAL / NON-DIVISI YANG WAJIB DISEMBUNYIKAN DARI FILTER DIVISI OPERASIONAL
+      const excludedAccounts = ['admin', 'bli nengah'];
+
       divList.forEach(div => { 
-        filterDivisi.innerHTML += `<option value="${div}">${div}</option>`; 
+        if (!div) return;
+        const cleanDiv = div.toString().trim();
+        
+        // EKSKLUSI KHUSUS: ABAIKAN AKUN MANAGEMENT / NON-DIVISI
+        if (excludedAccounts.includes(cleanDiv.toLowerCase())) return;
+
+        if (filterDivisi) {
+          filterDivisi.innerHTML += `<option value="${cleanDiv}">${cleanDiv}</option>`; 
+        }
         if (pillContainer) {
           pillContainer.innerHTML += `
-            <button class="division-pill-item" data-div="${div}" onclick="selectDivisionPill('${div}', this)">
-               ${div}
+            <button class="division-pill-item" data-div="${cleanDiv}" onclick="selectDivisionPill('${cleanDiv}', this)">
+               ${cleanDiv}
             </button>
           `;
         }
@@ -3531,6 +3600,15 @@
       }
     }
 
+    function filterFromMapPopup(regionName) {
+      const sel = document.getElementById('filterWilayah');
+      if (sel) {
+        sel.value = regionName;
+      }
+      switchView('table');
+      applyGlobalFilters();
+    }
+
     function updateMapPopups(currentData) {
       if (!mapInstance || !markerRegistry) return;
       var coords = [
@@ -3558,35 +3636,35 @@
         }, {});
 
         const divHtml = Object.entries(divCounts).map(([div, count]) => `
-          <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:2px; color:#64748b;">
+          <div class="popup-div-row">
               <span>${div}</span>
-              <span style="font-weight:700; color:#0f172a;">${count} Task</span>
+              <span class="popup-div-count">${count} Task</span>
           </div>
         `).join('');
 
         var popupContent = `
-          <div style="font-family:'Plus Jakarta Sans', sans-serif; min-width:220px; padding:0;">
-            <div style="padding: 12px; border-bottom: 1px solid #f1f5f9;">
-              <div style="font-size:9px; color:#64748b; text-transform:uppercase; font-weight:700; letter-spacing:0.8px;">Wilayah Kerja</div>
-              <div style="font-size:15px; font-weight:800; color:#0f172a; margin-top:2px;">${c.name}</div>
+          <div style="font-family:'Plus Jakarta Sans', sans-serif; min-width:210px; padding:0;">
+            <div class="popup-card-header">
+              <div class="popup-card-sub">Wilayah Kerja</div>
+              <div class="popup-card-title">${c.name}</div>
             </div>
-            <div style="padding: 12px;">
+            <div style="padding: 10px;">
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
-                  <div style="background:#f8fafc; padding:6px; border-radius:6px; text-align:center;">
-                      <div style="font-size:8px; color:#64748b;">TOTAL TASK</div>
-                      <div style="font-weight:700; color:#1e293b; font-size:14px;">${totalTasks}</div>
+                  <div class="popup-stat-box">
+                      <div class="popup-stat-label">TOTAL TASK</div>
+                      <div class="popup-stat-value">${totalTasks}</div>
                   </div>
-                  <div style="background:${overdueTasks > 0 ? '#fef2f2' : '#f0fdf4'}; padding:6px; border-radius:6px; text-align:center;">
-                      <div style="font-size:8px; color:${overdueTasks > 0 ? '#991b1b' : '#166534'};">OVERDUE</div>
-                      <div style="font-weight:700; color:${overdueTasks > 0 ? '#b91c1c' : '#15803d'}; font-size:14px;">${overdueTasks}</div>
+                  <div class="popup-stat-box" style="background:${overdueTasks > 0 ? 'rgba(244, 63, 94, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; border-color:${overdueTasks > 0 ? 'rgba(244, 63, 94, 0.3)' : 'rgba(16, 185, 129, 0.3)'};">
+                      <div class="popup-stat-label" style="color:${overdueTasks > 0 ? '#F43F5E' : '#10B981'};">OVERDUE</div>
+                      <div class="popup-stat-value" style="color:${overdueTasks > 0 ? '#F43F5E' : '#10B981'};">${overdueTasks}</div>
                   </div>
               </div>
-              <div style="margin-bottom:12px;">
-                  <div style="font-size:10px; font-weight:700; color:#64748b; margin-bottom:6px; text-transform:uppercase;">Distribusi Divisi</div>
-                  ${divHtml || '<div style="font-size:10px; color:#94a3b8;">Tidak ada data</div>'}
+              <div style="margin-bottom:10px;">
+                  <div class="popup-card-sub" style="margin-bottom:6px;">Distribusi Divisi</div>
+                  ${divHtml || '<div style="font-size:10px; color:var(--slate);">Tidak ada data</div>'}
               </div>
-              <button class="btn btn-sm w-100" style="background: #2563EB; color:white; font-size:11px; font-weight:600; border-radius: 6px;" 
-                      onclick="var sel = document.getElementById('filterWilayah'); if(sel){ sel.value = '${c.name}'; applyGlobalFilters(); }">
+              <button class="btn btn-primary btn-sm w-100 fw-bold" style="font-size:11px; border-radius: 6px; padding: 6px;" 
+                      onclick="filterFromMapPopup('${c.name}')">
                   FILTER DATA WILAYAH
               </button>
             </div>
