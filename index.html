@@ -2123,12 +2123,14 @@
         }
         
         // HOT-SWAP LEAFLET TILE LAYER DYNAMICALLY
-        if (mapInstance && mapTileLayer) {
-            mapInstance.removeLayer(mapTileLayer);
+        if (mapInstance) {
+            if (mapTileLayer) {
+              mapInstance.removeLayer(mapTileLayer);
+            }
             const tileUrl = isDark 
                 ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
                 : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-            mapTileLayer = L.tileLayer(tileUrl, { maxZoom: 20 }).addTo(mapInstance);
+            mapTileLayer = L.tileLayer(tileUrl, { maxZoom: 20, subdomains: 'abcd' }).addTo(mapInstance);
         }
 
         // Force refresh charts so the font colors adapt to the new background
@@ -3405,8 +3407,13 @@
             ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
             : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
 
-        L.tileLayer(tileUrl, {
-          maxZoom: 20
+        if (mapTileLayer) {
+          mapInstance.removeLayer(mapTileLayer);
+        }
+
+        mapTileLayer = L.tileLayer(tileUrl, {
+          maxZoom: 20,
+          subdomains: 'abcd'
         }).addTo(mapInstance);
 
         markerRegistry = {};
