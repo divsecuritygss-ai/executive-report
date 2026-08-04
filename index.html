@@ -1399,16 +1399,39 @@
 
       GoogleScriptRunInstance.prototype._executeGet = function(action) {
         fetch(`${GAS_SECURITY_API_URL}?action=${action}`, { redirect: 'follow' })
-          .then(res => res.json())
+          .then(async res => {
+            const text = await res.text();
+            try {
+              return JSON.parse(text);
+            } catch (e) {
+              console.error(`[GAS-API-ERROR] Action '${action}' mengembalikan HTML/Bukan JSON. Kemungkinan akses Web App belum 'Anyone'. Content preview:`, text.substring(0, 150));
+              throw new Error(`Server GAS mengembalikan respon non-JSON untuk action '${action}'.`);
+            }
+          })
           .then(d => { if (this._successCb) this._successCb(d); })
-          .catch(err => { if (this._failureCb) this._failureCb(err); });
+          .catch(err => {
+            console.error(`[GAS-FETCH-FAILED] Action '${action}' gagal:`, err);
+            if (this._failureCb) this._failureCb(err);
+          });
       };
 
       GoogleScriptRunInstance.prototype._executePost = function(action, args) {
         fetch(GAS_SECURITY_API_URL, { method: 'POST', body: JSON.stringify({ action: action, args: args }), redirect: 'follow' })
-          .then(res => res.json())
-          .then(d => { if (this._successCb) this._successCb(d.result); })
-          .catch(err => { if (this._failureCb) this._failureCb(err); });
+          .then(async res => {
+            const text = await res.text();
+            try {
+              const parsed = JSON.parse(text);
+              return parsed.result !== undefined ? parsed.result : parsed;
+            } catch (e) {
+              console.error(`[GAS-API-ERROR] Action POST '${action}' mengembalikan HTML/Bukan JSON. Preview:`, text.substring(0, 150));
+              throw new Error(`Server GAS mengembalikan respon non-JSON untuk POST '${action}'.`);
+            }
+          })
+          .then(d => { if (this._successCb) this._successCb(d); })
+          .catch(err => {
+            console.error(`[GAS-POST-FAILED] Action '${action}' gagal:`, err);
+            if (this._failureCb) this._failureCb(err);
+          });
       };
 
       // Registrasi Pemetaan Fungsi Operasional PWA Terisolasi
@@ -1460,9 +1483,34 @@
     }
 
     let telemetryInterval = null;
+    let globalLoadingTimeout = null;
+
     function startLoading(msg = "Sinkronisasi...") { 
       document.getElementById('loadingMsg').innerText = msg;
       document.getElementById('loadingOverlay').style.display = 'flex'; 
+
+      // Safety Guardrail: Batas maksimal loading 10 detik untuk mencegah screen freeze di Vercel
+      if (globalLoadingTimeout) clearTimeout(globalLoadingTimeout);
+      globalLoadingTimeout = setTimeout(() => {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay && overlay.style.display !== 'none') {
+          endLoading();
+          Swal.fire({
+            title: 'Koneksi Cloud Terhambat',
+            html: `<div class="text-start small">
+                     Gagal menghubungkan ke database Google Apps Script.<br><br>
+                     <b>Langkah Penanganan Deployment GAS:</b><br>
+                     1. Buka Apps Script Editor di Google Sheets.<br>
+                     2. Klik <b>Deploy > Manage Deployments</b>.<br>
+                     3. Klik ikon Pensil, pastikan <b>Who has access</b> diset ke <b>Anyone (Siapa saja)</b>.<br>
+                     4. Pilih <b>New Version</b> lalu klik <b>Deploy</b>.
+                   </div>`,
+            icon: 'warning',
+            confirmButtonText: 'Coba Lagi',
+            customClass: { popup: 'rounded-4' }
+          }).then(() => refreshData());
+        }
+      }, 10000); 
       
       const tBox = document.getElementById('telemetryBox');
       const logs = [
