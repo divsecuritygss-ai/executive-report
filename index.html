@@ -1692,62 +1692,124 @@
     </div>
   </div>
 
-  <!-- MODAL INTELLIGENT DATA ASSISTANT ("TANYA") -->
+  <!-- MODAL INTELLIGENT DATA ASSISTANT ("TANYA BAGAS") WITH DUAL-VIEW GOVERNANCE -->
   <div class="modal fade" id="tanyaModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
         
-        <!-- MODAL HEADER ASISTEN BAGAS -->
-        <div class="modal-header border-bottom px-4 py-3">
-          <div class="d-flex align-items-center gap-3">
-            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;">
-              <i class="fas fa-robot fs-5"></i>
+        <!-- =================================================== -->
+        <!-- VIEW 1: LAYAR DISCLAIMER HUMANIS (TAMPIL PERTAMA)  -->
+        <!-- =================================================== -->
+        <div id="tanyaDisclaimerView">
+          <div class="modal-header border-bottom px-4 py-3 bg-light">
+            <div class="d-flex align-items-center gap-3">
+              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;">
+                <i class="fas fa-info-circle fs-5"></i>
+              </div>
+              <div>
+                <h5 class="modal-title fw-800 text-navy mb-0" style="font-size: 1.1rem;">Catatan Penggunaan TANYA BAGAS</h5>
+                <small class="text-slate">Panduan & Batas Layanan Asisten Data Operasional</small>
+              </div>
             </div>
-            <div>
-              <h5 class="modal-title fw-800 text-navy mb-0" style="font-size: 1.1rem;">Asisten Data & Informasi ("TANYA BAGAS")</h5>
-              <small class="text-slate">Halo! Saya <b>BAGAS</b>, siap melayani seluruh kebutuhan data & laporan dalam aplikasi ini.</small>
-            </div>
-          </div>
-          <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <!-- MODAL BODY & QUERY DISPLAY AREA -->
-        <div class="modal-body p-4" style="max-height: 65vh; overflow-y: auto;">
-          <!-- REKOMENDASI PERTANYAAN CEPAT (FULL HUMANIS SENTENCES LAYOUT) -->
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-slate text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Contoh Pertanyaan Langsung (Klik untuk Memilih):</label>
-            <div class="d-flex flex-column gap-2">
-              <button class="btn btn-sm btn-light border text-navy text-start rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 hover-bg-light transition-all" style="font-size: 0.82rem;" onclick="setTanyaQuery('Apakah ada pekerjaan overdue pada bulan ini?')">
-                <i class="fas fa-bolt text-warning fs-6 me-1"></i>
-                <span>Apakah ada pekerjaan overdue pada bulan ini?</span>
-              </button>
-              <button class="btn btn-sm btn-light border text-navy text-start rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 hover-bg-light transition-all" style="font-size: 0.82rem;" onclick="setTanyaQuery('Tampilkan rincian pekerjaan divisi security yang harus segera ditindaklanjuti')">
-                <i class="fas fa-shield-alt text-primary fs-6 me-1"></i>
-                <span>Tampilkan rincian pekerjaan divisi security yang harus segera ditindaklanjuti</span>
-              </button>
-              <button class="btn btn-sm btn-light border text-navy text-start rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 hover-bg-light transition-all" style="font-size: 0.82rem;" onclick="setTanyaQuery('Berapa persen pekerjaan yang diselesaikan pada bulan ini?')">
-                <i class="fas fa-chart-pie text-success fs-6 me-1"></i>
-                <span>Berapa persen pekerjaan yang diselesaikan pada bulan ini?</span>
-              </button>
-            </div>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
 
-          <!-- CONTAINER HASIL JAWABAN -->
-          <div id="tanyaAnswerContainer" class="p-3 rounded-3 border bg-light" style="min-height: 140px;">
-            <div class="text-center text-slate py-4">
-              <i class="fas fa-comments fa-2x mb-2 opacity-50"></i>
-              <p class="mb-0 small">Ketik pertanyaan Anda di bawah atau pilih tombol pertanyaan cepat di atas.</p>
+          <div class="modal-body p-4 text-navy">
+            <div class="p-3 rounded-3 border bg-primary-subtle border-primary-subtle mb-3">
+              <div class="d-flex align-items-center gap-2 mb-2 text-primary fw-bold fs-6">
+                <i class="fas fa-hand-wave"></i> Halo! Selamat Datang di Layanan TANYA BAGAS
+              </div>
+              <p class="mb-0 small text-navy lh-base" style="font-size: 0.9rem;">
+                Sebelum kita mulai berdiskusi, BAGAS ingin menyampaikan catatan penting terkait penggunaan fitur ini agar informasi yang Anda dapatkan selalu akurat:
+              </p>
             </div>
-          </div>
-        </div>
 
-        <!-- MODAL FOOTER & INPUT BOX -->
-        <div class="modal-footer border-top p-3">
-          <div class="input-group">
-            <input type="text" id="inputTanyaQuery" class="form-control bg-light border-0 shadow-none py-2 px-3" placeholder="Contoh: Berapa total task di wilayah ITA?" onkeypress="if(event.key === 'Enter') processTanyaQuery()">
-            <button class="btn btn-primary px-4 fw-bold" onclick="processTanyaQuery()">
-              <i class="fas fa-paper-plane me-1"></i> Tanya
+            <div class="bg-white p-3 rounded-3 border shadow-sm mb-3">
+              <ul class="mb-0 ps-3 text-slate small lh-lg" style="font-size: 0.88rem;">
+                <li class="mb-2">
+                  <b class="text-navy">Khusus Data Operasional Aplikasi:</b> BAGAS dirancang khusus untuk menganalisis, merangkum, dan menyajikan data seputar <b>Aktivitas & Progres Pekerjaan Mingguan</b> di dalam aplikasi ini.
+                </li>
+                <li class="mb-2">
+                  <b class="text-navy">Pertanyaan di Luar Aplikasi:</b> Jika Anda menanyakan hal-hal umum di luar data aplikasi (seperti resep, cuaca, politik, atau data SDM/personel), BAGAS tidak dapat memberikan jawaban yang akurat.
+                </li>
+                <li>
+                  <b class="text-navy">Fokus Presisi Data:</b> Silakan gunakan layanan ini untuk menanyakan status pekerjaan, potensi overdue, capaian penyelesaian, dan rincian tindak lanjut divisi.
+                </li>
+              </ul>
+            </div>
+
+            <p class="small text-slate mb-0 text-center italic" style="font-size: 0.8rem;">
+              <i>Mari fokus pada data operasional aplikasi agar BAGAS dapat membantu keputusan strategis Anda secara maksimal!</i>
+            </p>
+          </div>
+
+          <!-- FOOTER TOMBOL KEMBALI & MENGERTI -->
+          <div class="modal-footer border-top p-3 bg-light justify-content-between">
+            <button type="button" class="btn btn-light border px-4 fw-bold text-slate hover-bg-light" data-bs-dismiss="modal">
+              <i class="fas fa-arrow-left me-1"></i> KEMBALI
             </button>
+            <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" onclick="acceptTanyaDisclaimer()" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); border: none;">
+              MENGERTI <i class="fas fa-check-circle ms-1"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- =================================================== -->
+        <!-- VIEW 2: LAYAR OBROLAN CHAT (TERSEMBUNYI DEFAULTS)   -->
+        <!-- =================================================== -->
+        <div id="tanyaChatView" class="d-none">
+          <!-- MODAL HEADER ASISTEN BAGAS -->
+          <div class="modal-header border-bottom px-4 py-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;">
+                <i class="fas fa-robot fs-5"></i>
+              </div>
+              <div>
+                <h5 class="modal-title fw-800 text-navy mb-0" style="font-size: 1.1rem;">Asisten Data & Informasi ("TANYA BAGAS")</h5>
+                <small class="text-slate">Saya <b>BAGAS</b>, siap melayani seluruh kebutuhan data & laporan dalam aplikasi ini.</small>
+              </div>
+            </div>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+
+          <!-- MODAL BODY & QUERY DISPLAY AREA -->
+          <div class="modal-body p-4" style="max-height: 65vh; overflow-y: auto;">
+            <!-- REKOMENDASI PERTANYAAN CEPAT (FULL HUMANIS SENTENCES LAYOUT) -->
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-slate text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Contoh Pertanyaan Langsung (Klik untuk Memilih):</label>
+              <div class="d-flex flex-column gap-2">
+                <button class="btn btn-sm btn-light border text-navy text-start rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 hover-bg-light transition-all" style="font-size: 0.82rem;" onclick="setTanyaQuery('Apakah ada pekerjaan overdue pada bulan ini?')">
+                  <i class="fas fa-bolt text-warning fs-6 me-1"></i>
+                  <span>Apakah ada pekerjaan overdue pada bulan ini?</span>
+                </button>
+                <button class="btn btn-sm btn-light border text-navy text-start rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 hover-bg-light transition-all" style="font-size: 0.82rem;" onclick="setTanyaQuery('Tampilkan rincian pekerjaan divisi security yang harus segera ditindaklanjuti')">
+                  <i class="fas fa-shield-alt text-primary fs-6 me-1"></i>
+                  <span>Tampilkan rincian pekerjaan divisi security yang harus segera ditindaklanjuti</span>
+                </button>
+                <button class="btn btn-sm btn-light border text-navy text-start rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 hover-bg-light transition-all" style="font-size: 0.82rem;" onclick="setTanyaQuery('Berapa persen pekerjaan yang diselesaikan pada bulan ini?')">
+                  <i class="fas fa-chart-pie text-success fs-6 me-1"></i>
+                  <span>Berapa persen pekerjaan yang diselesaikan pada bulan ini?</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- CONTAINER HASIL JAWABAN -->
+            <div id="tanyaAnswerContainer" class="p-3 rounded-3 border bg-light" style="min-height: 140px;">
+              <div class="text-center text-slate py-4">
+                <i class="fas fa-comments fa-2x mb-2 opacity-50"></i>
+                <p class="mb-0 small">Ketik pertanyaan Anda di bawah atau pilih contoh pertanyaan langsung di atas.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- MODAL FOOTER & INPUT BOX -->
+          <div class="modal-footer border-top p-3">
+            <div class="input-group">
+              <input type="text" id="inputTanyaQuery" class="form-control bg-light border-0 shadow-none py-2 px-3" placeholder="Ketik pertanyaan Anda di sini..." onkeypress="if(event.key === 'Enter') processTanyaQuery()">
+              <button class="btn btn-primary px-4 fw-bold" onclick="processTanyaQuery()">
+                <i class="fas fa-paper-plane me-1"></i> Tanya
+              </button>
+            </div>
           </div>
         </div>
 
@@ -3994,14 +4056,34 @@
     }
 
     // ==========================================
-    // INTELLIGENT DATA ASSISTANT ("TANYA") ENGINE
+    // INTELLIGENT DATA ASSISTANT ("TANYA BAGAS") ENGINE
     // ==========================================
     function openTanyaModal() {
       const modalEl = document.getElementById('tanyaModal');
       if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
+        // TAMPILKAN LAYAR DISCLAIMER & SEMBUNYIKAN CHAT VIEW SETIAP KALI MODAL DIBUKA
+        const disclaimerView = document.getElementById('tanyaDisclaimerView');
+        const chatView = document.getElementById('tanyaChatView');
+        if (disclaimerView) disclaimerView.classList.remove('d-none');
+        if (chatView) chatView.classList.add('d-none');
+
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
         modal.show();
       }
+    }
+
+    function acceptTanyaDisclaimer() {
+      const disclaimerView = document.getElementById('tanyaDisclaimerView');
+      const chatView = document.getElementById('tanyaChatView');
+      
+      if (disclaimerView) disclaimerView.classList.add('d-none');
+      if (chatView) chatView.classList.remove('d-none');
+
+      // Fokuskan kursor ke input pertanyaan secara otomatis
+      setTimeout(() => {
+        const input = document.getElementById('inputTanyaQuery');
+        if (input) input.focus();
+      }, 150);
     }
 
     function setTanyaQuery(text) {
