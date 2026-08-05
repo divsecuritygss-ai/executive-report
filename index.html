@@ -1159,7 +1159,7 @@
       <!-- ============================================== -->
       <main id="homeView" class="p-4 pb-5">
         
-        <!-- ROW 1: 4 KPI CARDS -->
+        <!-- ROW 1: 4 KPI CARDS (DYNAMIC TREN HOOKS INJECTED) -->
         <div class="row g-3 mb-4">
           <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi-card-solid" onclick="sendTotalWA()">
@@ -1198,7 +1198,7 @@
                 <div class="kpi-icon-soft bg-warning-subtle text-warning"><i class="fas fa-check-double"></i></div>
               </div>
               <div class="fw-800 text-navy mb-2" id="kpi-completed" style="font-size: 2rem; line-height: 1;">0</div>
-              <div class="small fw-bold text-slate" style="font-size: 0.75rem;"><span class="text-navy fw-bold">0%</span> dari minggu lalu</div>
+              <div class="small fw-bold text-slate" id="container-trend-completed" style="font-size: 0.75rem;"><span id="trend-completed" class="fw-bold">0%</span> <span class="text-slate fw-normal">dari minggu lalu</span></div>
             </div>
           </div>
         </div>
@@ -2486,75 +2486,131 @@
       const results = dataToChart.map(item => getLogicStatus(item).label);
       const overdueCount = results.filter(r => r === "Overdue").length;
       const processCount = results.filter(r => r === "On Progress").length;
-      const completedCount = archiveData.length; // Estimasi Data Archive untuk Status Done
 
-      // 1. UPDATE 4 KPI CARDS
-      animateCounter('kpi-total', dataToChart.length);
-      animateCounter('kpi-overdue', overdueCount);
-      animateCounter('kpi-running', processCount);
-      animateCounter('kpi-completed', completedCount); // Menambahkan KPI Completed
+      // HELPER PARSER TANGGAL PERSISI (HANDLING STRINGS M/D/YYYY, ISO, ATAS DATE OBJECT)
+      function parseFlexibleDate(dateVal) {
+        if (!dateVal) return null;
+        if (dateVal instanceof Date) return dateVal;
+        var str = dateVal.toString().trim();
+        var parts = str.split(' ')[0].split('/');
+        if (parts.length === 3) {
+          var month = parseInt(parts[0], 10) - 1;
+          var day = parseInt(parts[1], 10);
+          var year = parseInt(parts[2], 10);
+          if (year < 100) year += 2000;
+          return new Date(year, month, day);
+        }
+        var d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+      }
 
-      // 2. UPDATE SUMMARY ROW (KALKULASI SENIN - JUMAT MINGGU BERJALAN)
-      const now = new Date();
-      const dayOfWeek = now.getDay(); 
+      // LOGIKA ANKOR TANGGAL TERPUSAT (SENIN S/D MINGGU)
+      const currentDate = new Date();
+      const dayOfWeek = currentDate.getDay(); 
       const distanceToMon = (dayOfWeek + 6) % 7; 
-      const mondayThisWeek = new Date(now);
-      mondayThisWeek.setDate(now.getDate() - distanceToMon);
+      const mondayThisWeek = new Date(currentDate);
+      mondayThisWeek.setDate(currentDate.getDate() - distanceToMon);
       mondayThisWeek.setHours(0, 0, 0, 0);
+
+      const sundayThisWeek = new Date(mondayThisWeek);
+      sundayThisWeek.setDate(mondayThisWeek.getDate() + 6);
+      sundayThisWeek.setHours(23, 59, 59, 999);
+
+      const mondayLastWeek = new Date(mondayThisWeek);
+      mondayLastWeek.setDate(mondayThisWeek.getDate() - 7);
+      const sundayLastWeek = new Date(sundayThisWeek);
+      sundayLastWeek.setDate(sundayThisWeek.getDate() - 7);
 
       const fridayThisWeek = new Date(mondayThisWeek);
       fridayThisWeek.setDate(mondayThisWeek.getDate() + 4);
       fridayThisWeek.setHours(23, 59, 59, 999);
 
-      // Minggu lalu untuk perbandingan tren (%)
-      const mondayLastWeek = new Date(mondayThisWeek);
-      mondayLastWeek.setDate(mondayThisWeek.getDate() - 7);
       const fridayLastWeek = new Date(fridayThisWeek);
       fridayLastWeek.setDate(fridayThisWeek.getDate() - 7);
 
-      // 1) Aktivitas Baru (Penambahan Data Baru Senin - Jumat)
+      // 1. KALKULASI KPI COMPLETED (PRIORITAS: TIMESTAMP AKTUAL DARI REKAP KEGIATAN)
+      const completedThisWeek = archiveData.filter(i => {
+        var dateVal = i.Timestamp || i.Tanggal_Selesai;
+        var d = parseFlexibleDate(dateVal);
+        return d && d >= mondayThisWeek && d <= sundayThisWeek;
+      }).length;
+
+      const completedLastWeek = archiveData.filter(i => {
+        var dateVal = i.Timestamp || i.Tanggal_Selesai;
+        var d = parseFlexibleDate(dateVal);
+        return d && d >= mondayLastWeek && d <= sundayLastWeek;
+      }).length;
+
+      const totalCompletedAllTime = archiveData.length;
+
+      var pctCompletedTrend = 0;
+      if (completedLastWeek > 0) {
+        pctCompletedTrend = Math.round(((completedThisWeek - completedLastWeek) / completedLastWeek) * 100);
+      } else if (completedThisWeek > 0) {
+        pctCompletedTrend = 100;
+      }
+
+      // UPDATE 4 KPI CARDS
+      animateCounter('kpi-total', dataToChart.length);
+      animateCounter('kpi-overdue', overdueCount);
+      animateCounter('kpi-running', processCount);
+      animateCounter('kpi-completed', totalCompletedAllTime);
+
+      // INJEKSI DINAMIS TREN PERGERAKAN COMPLETED KPI VS MINGGU LALU
+      const elContainerTrendComp = document.getElementById('container-trend-completed');
+      if (elContainerTrendComp) {
+        var sign = pctCompletedTrend > 0 ? '+' : '';
+        if (pctCompletedTrend > 0) {
+          elContainerTrendComp.className = 'small fw-bold text-success';
+          elContainerTrendComp.innerHTML = `<i class="fas fa-arrow-up me-1"></i><span id="trend-completed" class="fw-bold">${sign}${pctCompletedTrend}%</span> <span class="text-slate fw-normal">dari minggu lalu</span>`;
+        } else if (pctCompletedTrend < 0) {
+          elContainerTrendComp.className = 'small fw-bold text-danger';
+          elContainerTrendComp.innerHTML = `<i class="fas fa-arrow-down me-1"></i><span id="trend-completed" class="fw-bold">${pctCompletedTrend}%</span> <span class="text-slate fw-normal">dari minggu lalu</span>`;
+        } else {
+          elContainerTrendComp.className = 'small fw-bold text-slate';
+          elContainerTrendComp.innerHTML = `<span id="trend-completed" class="fw-bold">0%</span> <span class="text-slate fw-normal">dari minggu lalu</span>`;
+        }
+      }
+
+      // 2. UPDATE SUMMARY ROW (KALKULASI SENIN - JUMAT MINGGU BERJALAN)
       const aktBaru = dataToChart.filter(i => {
         if (!i.Timestamp) return false;
-        const d = new Date(i.Timestamp);
-        return d >= mondayThisWeek && d <= fridayThisWeek;
+        const d = parseFlexibleDate(i.Timestamp);
+        return d && d >= mondayThisWeek && d <= fridayThisWeek;
       }).length;
 
       const aktBaruLast = dataToChart.filter(i => {
         if (!i.Timestamp) return false;
-        const d = new Date(i.Timestamp);
-        return d >= mondayLastWeek && d <= fridayLastWeek;
+        const d = parseFlexibleDate(i.Timestamp);
+        return d && d >= mondayLastWeek && d <= fridayLastWeek;
       }).length;
 
       const pctBaruTrend = aktBaruLast > 0 ? Math.round(((aktBaru - aktBaruLast) / aktBaruLast) * 100) : (aktBaru > 0 ? 100 : 0);
 
-      // 2) Aktivitas Selesai (Task diubah menjadi Done)
       const aktSelesai = archiveData.filter(i => {
-        if (!i.Timestamp && !i.Tanggal_Selesai) return true;
-        const d = new Date(i.Timestamp || i.Tanggal_Selesai);
-        return d >= mondayThisWeek && d <= fridayThisWeek;
+        var dateVal = i.Timestamp || i.Tanggal_Selesai;
+        const d = parseFlexibleDate(dateVal);
+        return d && d >= mondayThisWeek && d <= fridayThisWeek;
       }).length;
 
       const aktSelesaiLast = archiveData.filter(i => {
-        if (!i.Timestamp && !i.Tanggal_Selesai) return false;
-        const d = new Date(i.Timestamp || i.Tanggal_Selesai);
-        return d >= mondayLastWeek && d <= fridayLastWeek;
+        var dateVal = i.Timestamp || i.Tanggal_Selesai;
+        const d = parseFlexibleDate(dateVal);
+        return d && d >= mondayLastWeek && d <= fridayLastWeek;
       }).length;
 
       const pctSelesaiTrend = aktSelesaiLast > 0 ? Math.round(((aktSelesai - aktSelesaiLast) / aktSelesaiLast) * 100) : 0;
 
-      // 3) Rata-rata Penyelesaian (Rasio Selesai / Total Task Minggu Berjalan)
       const totalWeekTasks = aktBaru + aktSelesai;
       const ratePenyelesaian = totalWeekTasks > 0 ? Math.round((aktSelesai / totalWeekTasks) * 100) : 0;
 
-      // 4) Divisi Aktif (Divisi yang melakukan aktivitas / login minggu berjalan)
-      const setDiv = new Set();
-      dataToChart.forEach(i => { if (i.Divisi) setDiv.add(i.Divisi.trim()); });
+      // DIVISI AKTIF DARI SHEET AUDIT LOG
+      const activeDivisionsCount = auditActiveDivisions.length > 0 ? auditActiveDivisions.length : new Set(dataToChart.map(i => i.Divisi)).size;
       
-      // 5) Wilayah Aktif
       const setWil = new Set();
       dataToChart.forEach(i => { if (i.Wilayah_Kerja && i.Wilayah_Kerja.trim() !== "") setWil.add(i.Wilayah_Kerja.trim()); });
 
-      // Injeksi Nilai ke DOM HTML
+      // INJEKSI NILAI KE DOM HTML
       const elBaru = document.getElementById('sum-baru'); if (elBaru) elBaru.innerText = aktBaru;
       const elBaruPct = document.getElementById('sum-baru-pct'); if (elBaruPct) elBaruPct.innerText = (pctBaruTrend >= 0 ? '+' : '') + pctBaruTrend + '%';
 
@@ -2564,16 +2620,15 @@
       const elRata = document.getElementById('sum-rata'); if (elRata) elRata.innerText = ratePenyelesaian + '%';
       const elRataPct = document.getElementById('sum-rata-pct'); if (elRataPct) elRataPct.innerText = ratePenyelesaian + '%';
 
-      const elDiv = document.getElementById('sum-divisi'); if (elDiv) elDiv.innerText = setDiv.size;
+      const elDiv = document.getElementById('sum-divisi'); if (elDiv) elDiv.innerText = activeDivisionsCount;
       const elWil = document.getElementById('sum-wilayah'); if (elWil) elWil.innerText = setWil.size;
 
-      // 3. BAR CHART ENGINE (DENGAN CUSTOM PLUGIN LABELS)
+      // 3. BAR CHART ENGINE
       const divCounts = {};
       dataToChart.forEach(it => { divCounts[it.Divisi] = (divCounts[it.Divisi] || 0) + 1; });
       const ctxBar = document.getElementById('mainBarChart').getContext('2d');
       if (chartBar) chartBar.destroy();
       
-      // Sorting bar chart dari yang terbesar ke terkecil seperti pada gambar
       const sortedDivs = Object.keys(divCounts).sort((a,b) => divCounts[b] - divCounts[a]);
       const sortedData = sortedDivs.map(d => divCounts[d]);
 
@@ -2583,12 +2638,12 @@
             labels: sortedDivs, 
             datasets: [{ 
                 data: sortedData, 
-                backgroundColor: '#3B82F6', // Solid Blue
+                backgroundColor: '#3B82F6',
                 borderRadius: 4,
                 barThickness: 12,
             }] 
         },
-        plugins: [barLabelPlugin], // Memasang Plugin Angka Ujung Batang
+        plugins: [barLabelPlugin],
         options: { 
             indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
             layout: { padding: { right: 30 } }, 
@@ -2600,7 +2655,7 @@
         }
       });
 
-      // 4. DOUGHNUT CHART ENGINE (ON PROGRESS, OVERDUE, COMPLETED - SPASI & LEGEND PRESISI FIX)
+      // 4. DOUGHNUT CHART ENGINE
       const ctxPie = document.getElementById('mainPieChart').getContext('2d');
       if (chartPie) chartPie.destroy();
 
@@ -2613,8 +2668,8 @@
         data: { 
           labels: ['On Progress', 'Overdue', 'Completed'], 
           datasets: [{ 
-            data: [processCount, overdueCount, completedCount], 
-            backgroundColor: ['#10B981', '#E11D48', '#F59E0B'], // Hijau, Merah, Kuning
+            data: [processCount, overdueCount, totalCompletedAllTime], 
+            backgroundColor: ['#10B981', '#E11D48', '#F59E0B'],
             borderWidth: 0,
             hoverOffset: 6
           }] 
@@ -2659,13 +2714,13 @@
                 ctx.restore(); ctx.textBaseline = "middle";
                 const chartArea = chart.chartArea;
                 const centerY = chartArea ? (chartArea.top + chartArea.bottom) / 2 : chart.height / 2;
-                // Center Title (Angka Total Aktivitas)
+                
                 ctx.font = "800 1.8rem 'Plus Jakarta Sans', sans-serif"; 
                 ctx.fillStyle = centerTitleColor;
                 const text = dataToChart.length.toString();
                 const textX = Math.round((width - ctx.measureText(text).width) / 2);
                 ctx.fillText(text, textX, centerY - 8);
-                // Center Subtext ("AKTIVITAS")
+                
                 ctx.font = "700 0.68rem 'Plus Jakarta Sans', sans-serif"; 
                 ctx.fillStyle = isDarkTheme ? '#94A3B8' : '#64748B';
                 const text2 = "AKTIVITAS";
@@ -2705,16 +2760,19 @@
     }
 
 
+    let auditActiveDivisions = [];
+
     function refreshData() {
       startLoading("Menghubungkan ke Cloud Database...");
       renderTableSkeletons();
       
-      // STRATEGI HYBRID: Coba Batch Request (getInitialData), jika Backend GAS belum update -> Auto Fallback ke Legacy Endpoints
       google.script.run
         .withSuccessHandler(res => {
           if (res && (res.divisions || res.activities || res.rekap)) {
             populateFilters(res.divisions || []);
             allData = res.activities || [];
+            archiveData = res.archive || [];
+            auditActiveDivisions = res.activeDivisions || [];
             applyGlobalFilters();
             renderUpdateNotifications(allData); 
             renderLineChart(res.rekap || { labels: [], data: [] });
