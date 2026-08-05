@@ -1159,9 +1159,10 @@
       <!-- ============================================== -->
       <main id="homeView" class="p-4 pb-5">
         
-        <!-- ROW 1: 4 KPI CARDS (DYNAMIC TREN HOOKS INJECTED) -->
-        <div class="row g-3 mb-4">
-          <div class="col-12 col-sm-6 col-xl-3">
+        <!-- ROW 1: 5 EXECUTIVE KPI CARDS (RESPONSIVE GRID) -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
+          <!-- CARD 1: TOTAL AKTIVITAS -->
+          <div class="col">
             <div class="kpi-card-solid" onclick="sendTotalWA()">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="text-navy fw-bold text-uppercase" style="font-size:0.75rem; letter-spacing:0.5px;">TOTAL AKTIVITAS</div>
@@ -1171,7 +1172,8 @@
               <div class="small fw-bold text-success" style="font-size: 0.75rem;"><i class="fas fa-arrow-up me-1"></i> <span id="trend-total">Realtime</span> <span class="text-slate fw-normal">dari minggu lalu</span></div>
             </div>
           </div>
-          <div class="col-12 col-sm-6 col-xl-3">
+          <!-- CARD 2: OVERDUE -->
+          <div class="col">
             <div class="kpi-card-solid" onclick="sendOverdueWA()">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="text-navy fw-bold text-uppercase" style="font-size:0.75rem; letter-spacing:0.5px;">OVERDUE</div>
@@ -1181,7 +1183,8 @@
               <div class="small fw-bold text-danger" style="font-size: 0.75rem;"><i class="fas fa-arrow-up me-1"></i> Alert <span class="text-slate fw-normal">dari minggu lalu</span></div>
             </div>
           </div>
-          <div class="col-12 col-sm-6 col-xl-3">
+          <!-- CARD 3: ON PROGRESS -->
+          <div class="col">
             <div class="kpi-card-solid">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="text-navy fw-bold text-uppercase" style="font-size:0.75rem; letter-spacing:0.5px;">ON PROGRESS</div>
@@ -1191,7 +1194,8 @@
               <div class="small fw-bold text-slate" style="font-size: 0.75rem;"><span class="text-navy fw-bold">0%</span> dari minggu lalu</div>
             </div>
           </div>
-          <div class="col-12 col-sm-6 col-xl-3">
+          <!-- CARD 4: COMPLETED COUNT -->
+          <div class="col">
             <div class="kpi-card-solid">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="text-navy fw-bold text-uppercase" style="font-size:0.75rem; letter-spacing:0.5px;">COMPLETED</div>
@@ -1199,6 +1203,17 @@
               </div>
               <div class="fw-800 text-navy mb-2" id="kpi-completed" style="font-size: 2rem; line-height: 1;">0</div>
               <div class="small fw-bold text-slate" id="container-trend-completed" style="font-size: 0.75rem;"><span id="trend-completed" class="fw-bold">0%</span> <span class="text-slate fw-normal">dari minggu lalu</span></div>
+            </div>
+          </div>
+          <!-- CARD 5: % COMPLETED (YTD TAHUN BERJALAN) -->
+          <div class="col">
+            <div class="kpi-card-solid">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="text-navy fw-bold text-uppercase" style="font-size:0.75rem; letter-spacing:0.5px;">% COMPLETED (YTD)</div>
+                <div class="kpi-icon-soft bg-info-subtle text-info"><i class="fas fa-chart-pie"></i></div>
+              </div>
+              <div class="fw-800 text-navy mb-2" style="font-size: 2rem; line-height: 1;"><span id="kpi-rate-ytd">0</span>%</div>
+              <div class="small fw-bold text-primary" style="font-size: 0.75rem;"><i class="fas fa-calendar-check me-1"></i> <span class="fw-bold">Tahun 2026</span></div>
             </div>
           </div>
         </div>
@@ -1343,19 +1358,19 @@
       <!-- VIEW 3: DETAIL LAPORAN -->
       <main id="tableView" class="d-none p-4">
         
-        <!-- MODULE: FILTER COMMAND CENTER -->
+        <!-- MODULE: FILTER COMMAND CENTER (WITH MONTH FILTER EXPANSION) -->
         <div class="chart-card p-4 mb-4">
           <h6 class="fw-bold text-navy mb-3 text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">
             <i class="fas fa-filter text-primary me-2"></i> Filter Data Laporan
           </h6>
           <div class="row g-3 align-items-end">
-            <div class="col-md-3">
+            <div class="col-12 col-md-6 col-lg-3">
               <label class="form-label small fw-bold text-slate mb-1">Divisi Terkait</label>
               <select id="filterDivisi" class="form-select bg-light border-0 shadow-none py-2" style="cursor:pointer;" onchange="applyGlobalFilters()">
                 <option value="All">Semua Divisi</option>
               </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-6 col-lg-2">
               <label class="form-label small fw-bold text-slate mb-1">Wilayah Kerja</label>
               <select id="filterWilayah" class="form-select bg-light border-0 shadow-none py-2" style="cursor:pointer;" onchange="applyGlobalFilters()">
                 <option value="All">Semua Wilayah</option>
@@ -1373,7 +1388,7 @@
                 <option value="MULTI">MULTI</option>
               </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-6 col-lg-2">
               <label class="form-label small fw-bold text-slate mb-1">Status Progres</label>
               <select id="filterStatus" class="form-select bg-light border-0 shadow-none py-2" style="cursor:pointer;" onchange="applyGlobalFilters()">
                 <option value="All">Semua Status</option>
@@ -1382,7 +1397,26 @@
                 <option value="Done">Completed</option>
               </select>
             </div>
-            <div class="col-md-3">
+            <!-- NEW MONTH FILTER SELECTOR -->
+            <div class="col-12 col-md-6 col-lg-3">
+              <label class="form-label small fw-bold text-slate mb-1">Periode Bulan</label>
+              <select id="filterBulan" class="form-select bg-light border-0 shadow-none py-2" style="cursor:pointer;" onchange="applyGlobalFilters()">
+                <option value="All">Semua Bulan</option>
+                <option value="1">Januari</option>
+                <option value="2">Februari</option>
+                <option value="3">Maret</option>
+                <option value="4">April</option>
+                <option value="5">Mei</option>
+                <option value="6">Juni</option>
+                <option value="7">Juli</option>
+                <option value="8">Agustus</option>
+                <option value="9">September</option>
+                <option value="10">Oktober</option>
+                <option value="11">November</option>
+                <option value="12">Desember</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-12 col-lg-2">
               <button class="btn btn-light border w-100 fw-bold shadow-sm py-2 text-danger hover-bg-light" onclick="resetFilters()">
                 <i class="fas fa-sync-alt me-2"></i>Reset Filter
               </button>
@@ -2487,7 +2521,7 @@
       const overdueCount = results.filter(r => r === "Overdue").length;
       const processCount = results.filter(r => r === "On Progress").length;
 
-      // HELPER PARSER TANGGAL PERSISI (HANDLING STRINGS M/D/YYYY, ISO, ATAS DATE OBJECT)
+      // HELPER PARSER TANGGAL PRESISI
       function parseFlexibleDate(dateVal) {
         if (!dateVal) return null;
         if (dateVal instanceof Date) return dateVal;
@@ -2504,8 +2538,9 @@
         return isNaN(d.getTime()) ? null : d;
       }
 
-      // LOGIKA ANKOR TANGGAL TERPUSAT (SENIN S/D MINGGU)
+      // LOGIKA TANGGAL TERPUSAT
       const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
       const dayOfWeek = currentDate.getDay(); 
       const distanceToMon = (dayOfWeek + 6) % 7; 
       const mondayThisWeek = new Date(currentDate);
@@ -2528,20 +2563,47 @@
       const fridayLastWeek = new Date(fridayThisWeek);
       fridayLastWeek.setDate(fridayThisWeek.getDate() - 7);
 
-      // 1. KALKULASI KPI COMPLETED (PRIORITAS: TIMESTAMP AKTUAL DARI REKAP KEGIATAN)
-      const completedThisWeek = archiveData.filter(i => {
+      // BACA FILTER GLOBAL AKTIF SAAT INI
+      const elDivisi = document.getElementById('filterDivisi');
+      const elWilayah = document.getElementById('filterWilayah');
+      const selectedDivisi = elDivisi ? elDivisi.value : 'All';
+      const selectedWilayah = elWilayah ? elWilayah.value : 'All';
+
+      // FILTER SHEET REKAP KEGIATAN (ARCHIVE) SESUAI FILTER DIVISI & WILAYAH KERJA
+      const filteredArchive = archiveData.filter(item => {
+        if (!item.Aktivitas || item.Aktivitas.toString().trim() === "") return false;
+
+        let matchDiv = true;
+        if (selectedDivisi !== 'All') {
+          const sel = selectedDivisi.toLowerCase().trim();
+          const itm = (item.Divisi || "").toLowerCase().trim();
+          matchDiv = itm !== "" && (itm.includes(sel) || sel.includes(itm));
+        }
+
+        let matchWil = true;
+        if (selectedWilayah !== 'All') {
+          const selW = selectedWilayah.toLowerCase().trim();
+          const itmW = (item.Wilayah_Kerja || "").toLowerCase().trim();
+          matchWil = itmW !== "" && (itmW === selW || itmW.includes(selW) || selW.includes(itmW));
+        }
+
+        return matchDiv && matchWil;
+      });
+
+      // 1. KALKULASI KPI COMPLETED & TREN MINGGU LALU
+      const completedThisWeek = filteredArchive.filter(i => {
         var dateVal = i.Timestamp || i.Tanggal_Selesai;
         var d = parseFlexibleDate(dateVal);
         return d && d >= mondayThisWeek && d <= sundayThisWeek;
       }).length;
 
-      const completedLastWeek = archiveData.filter(i => {
+      const completedLastWeek = filteredArchive.filter(i => {
         var dateVal = i.Timestamp || i.Tanggal_Selesai;
         var d = parseFlexibleDate(dateVal);
         return d && d >= mondayLastWeek && d <= sundayLastWeek;
       }).length;
 
-      const totalCompletedAllTime = archiveData.length;
+      const totalCompletedCount = filteredArchive.length;
 
       var pctCompletedTrend = 0;
       if (completedLastWeek > 0) {
@@ -2550,13 +2612,24 @@
         pctCompletedTrend = 100;
       }
 
-      // UPDATE 4 KPI CARDS
+      // 2. KALKULASI KPI KE-5: % COMPLETED (YTD TAHUN BERJALAN 2026)
+      const archiveYTDCount = filteredArchive.filter(i => {
+        var dateVal = i.Timestamp || i.Tanggal_Selesai;
+        var d = parseFlexibleDate(dateVal);
+        return d && d.getFullYear() === currentYear;
+      }).length;
+
+      const totalYTDTasks = dataToChart.length + archiveYTDCount;
+      const rateCompletedYTD = totalYTDTasks > 0 ? Math.round((archiveYTDCount / totalYTDTasks) * 100) : 0;
+
+      // UPDATE 5 KPI CARDS
       animateCounter('kpi-total', dataToChart.length);
       animateCounter('kpi-overdue', overdueCount);
       animateCounter('kpi-running', processCount);
-      animateCounter('kpi-completed', totalCompletedAllTime);
+      animateCounter('kpi-completed', totalCompletedCount);
+      animateCounter('kpi-rate-ytd', rateCompletedYTD);
 
-      // INJEKSI DINAMIS TREN PERGERAKAN COMPLETED KPI VS MINGGU LALU
+      // INJEKSI DINAMIS TREN PERGERAKAN COMPLETED
       const elContainerTrendComp = document.getElementById('container-trend-completed');
       if (elContainerTrendComp) {
         var sign = pctCompletedTrend > 0 ? '+' : '';
@@ -2572,7 +2645,7 @@
         }
       }
 
-      // 2. UPDATE SUMMARY ROW (KALKULASI SENIN - JUMAT MINGGU BERJALAN)
+      // 3. UPDATE SUMMARY ROW
       const aktBaru = dataToChart.filter(i => {
         if (!i.Timestamp) return false;
         const d = parseFlexibleDate(i.Timestamp);
@@ -2587,13 +2660,13 @@
 
       const pctBaruTrend = aktBaruLast > 0 ? Math.round(((aktBaru - aktBaruLast) / aktBaruLast) * 100) : (aktBaru > 0 ? 100 : 0);
 
-      const aktSelesai = archiveData.filter(i => {
+      const aktSelesai = filteredArchive.filter(i => {
         var dateVal = i.Timestamp || i.Tanggal_Selesai;
         const d = parseFlexibleDate(dateVal);
         return d && d >= mondayThisWeek && d <= fridayThisWeek;
       }).length;
 
-      const aktSelesaiLast = archiveData.filter(i => {
+      const aktSelesaiLast = filteredArchive.filter(i => {
         var dateVal = i.Timestamp || i.Tanggal_Selesai;
         const d = parseFlexibleDate(dateVal);
         return d && d >= mondayLastWeek && d <= fridayLastWeek;
@@ -2604,13 +2677,11 @@
       const totalWeekTasks = aktBaru + aktSelesai;
       const ratePenyelesaian = totalWeekTasks > 0 ? Math.round((aktSelesai / totalWeekTasks) * 100) : 0;
 
-      // DIVISI AKTIF DARI SHEET AUDIT LOG
       const activeDivisionsCount = auditActiveDivisions.length > 0 ? auditActiveDivisions.length : new Set(dataToChart.map(i => i.Divisi)).size;
       
       const setWil = new Set();
       dataToChart.forEach(i => { if (i.Wilayah_Kerja && i.Wilayah_Kerja.trim() !== "") setWil.add(i.Wilayah_Kerja.trim()); });
 
-      // INJEKSI NILAI KE DOM HTML
       const elBaru = document.getElementById('sum-baru'); if (elBaru) elBaru.innerText = aktBaru;
       const elBaruPct = document.getElementById('sum-baru-pct'); if (elBaruPct) elBaruPct.innerText = (pctBaruTrend >= 0 ? '+' : '') + pctBaruTrend + '%';
 
@@ -2623,7 +2694,7 @@
       const elDiv = document.getElementById('sum-divisi'); if (elDiv) elDiv.innerText = activeDivisionsCount;
       const elWil = document.getElementById('sum-wilayah'); if (elWil) elWil.innerText = setWil.size;
 
-      // 3. BAR CHART ENGINE
+      // 4. BAR CHART ENGINE
       const divCounts = {};
       dataToChart.forEach(it => { divCounts[it.Divisi] = (divCounts[it.Divisi] || 0) + 1; });
       const ctxBar = document.getElementById('mainBarChart').getContext('2d');
@@ -2655,7 +2726,7 @@
         }
       });
 
-      // 4. DOUGHNUT CHART ENGINE
+      // 5. DOUGHNUT CHART ENGINE
       const ctxPie = document.getElementById('mainPieChart').getContext('2d');
       if (chartPie) chartPie.destroy();
 
@@ -2668,7 +2739,7 @@
         data: { 
           labels: ['On Progress', 'Overdue', 'Completed'], 
           datasets: [{ 
-            data: [processCount, overdueCount, totalCompletedAllTime], 
+            data: [processCount, overdueCount, totalCompletedCount], 
             backgroundColor: ['#10B981', '#E11D48', '#F59E0B'],
             borderWidth: 0,
             hoverOffset: 6
@@ -2729,6 +2800,37 @@
                 ctx.save();
             }
         }]
+      });
+
+      // 6. LINE CHART ENGINE DYNAMIC REKAP INTEGRATION (EXCLUSIVELY FROM FILTERED ARCHIVE DATA)
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+      const monthlyCounts = {};
+      const monthlyDetails = {};
+
+      filteredArchive.forEach(item => {
+        var dateVal = item.Timestamp || item.Tanggal_Selesai;
+        var d = parseFlexibleDate(dateVal);
+        if (d && d.getFullYear() === currentYear) {
+          var mIdx = d.getMonth();
+          var mLabel = monthNames[mIdx];
+          monthlyCounts[mLabel] = (monthlyCounts[mLabel] || 0) + 1;
+          
+          if (!monthlyDetails[mLabel]) monthlyDetails[mLabel] = {};
+          var div = item.Divisi || "Lainnya";
+          monthlyDetails[mLabel][div] = (monthlyDetails[mLabel][div] || 0) + 1;
+        }
+      });
+
+      const dynamicLabels = Object.keys(monthlyCounts);
+      dynamicLabels.sort((a, b) => monthNames.indexOf(a) - monthNames.indexOf(b));
+
+      const dynamicData = dynamicLabels.map(lbl => monthlyCounts[lbl]);
+      const dynamicDetails = dynamicLabels.map(lbl => monthlyDetails[lbl]);
+
+      renderLineChart({
+        labels: dynamicLabels,
+        data: dynamicData,
+        details: dynamicDetails
       });
     }
 
@@ -2904,11 +3006,13 @@
       const filterDivisi = document.getElementById('filterDivisi');
       const filterWilayah = document.getElementById('filterWilayah');
       const filterStatus = document.getElementById('filterStatus');
+      const filterBulan = document.getElementById('filterBulan');
       
       // Kembalikan semua dropdown ke kondisi "Semua"
       if (filterDivisi) filterDivisi.value = 'All';
       if (filterWilayah) filterWilayah.value = 'All';
       if (filterStatus) filterStatus.value = 'All';
+      if (filterBulan) filterBulan.value = 'All';
       
       // Terapkan ulang filter untuk merender ulang tabel dan chart secara utuh
       applyGlobalFilters();
@@ -2919,10 +3023,12 @@
       const elDivisi = document.getElementById('filterDivisi');
       const elWilayah = document.getElementById('filterWilayah');
       const elStatus = document.getElementById('filterStatus');
+      const elBulan = document.getElementById('filterBulan');
 
       const selectedDivisi = elDivisi ? elDivisi.value : 'All';
       const selectedWilayah = elWilayah ? elWilayah.value : 'All';
       const selectedStatus = elStatus ? elStatus.value : 'All';
+      const selectedBulan = elBulan ? elBulan.value : 'All';
       
       // Update Pill UI state if dropdown was changed directly
       const pills = document.querySelectorAll('.division-pill-item');
@@ -2943,6 +3049,42 @@
       }
 
       let sourceData = (selectedStatus === 'Done') ? archiveData : allData;
+
+      // HELPER PARSER TANGGAL UNIVERSAL PRESISI
+      function parseDateForMonthFilter(dateVal) {
+        if (!dateVal) return null;
+        if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? null : dateVal;
+        var str = dateVal.toString().trim();
+        if (!str) return null;
+
+        // 1. Format ISO YYYY-MM-DD
+        if (str.match(/^\d{4}-\d{2}-\d{2}/)) {
+          var cleanIso = str.split('T')[0].split(' ')[0];
+          var p = cleanIso.split('-');
+          return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+        }
+
+        // 2. Format Slash / (D/M/YYYY atau M/D/YYYY)
+        if (str.includes('/')) {
+          var datePart = str.split(' ')[0];
+          var p = datePart.split('/');
+          if (p.length === 3) {
+            var n1 = parseInt(p[0], 10);
+            var n2 = parseInt(p[1], 10);
+            var n3 = parseInt(p[2], 10);
+            if (n3 < 100) n3 += 2000;
+
+            if (n1 > 12) return new Date(n3, n2 - 1, n1); // n1 = Day, n2 = Month
+            if (n2 > 12) return new Date(n3, n1 - 1, n2); // n1 = Month, n2 = Day
+            
+            var nativeP = new Date(str);
+            if (!isNaN(nativeP.getTime())) return nativeP;
+          }
+        }
+
+        var nativeD = new Date(str);
+        return isNaN(nativeD.getTime()) ? null : nativeD;
+      }
 
       let filtered = sourceData.filter(item => {
         if (!item.Aktivitas || item.Aktivitas.toString().trim() === "") return false;
@@ -2967,7 +3109,26 @@
           matchStatus = (logic.label === selectedStatus);
         }
 
-        return matchDivisi && matchWilayah && matchStatus;
+        let matchBulan = true;
+        if (selectedBulan !== 'All') {
+          // KONTEKS ACUAN BULAN PRESISI:
+          // 1. Pekerjaan DONE (Rekap) -> Menggunakan Timestamp Selesai (atau Tanggal_Selesai jika Timestamp kosong)
+          // 2. Pekerjaan AKTIF / OVERDUE -> Menggunakan Target Tanggal_Selesai / Tanggal_Mulai
+          var isDoneItem = (item.Status || "").toString().trim().toLowerCase() === "done";
+          var targetDateVal = isDoneItem 
+            ? (item.Timestamp || item.Tanggal_Selesai) 
+            : (item.Tanggal_Selesai || item.Tanggal_Mulai || item.Timestamp);
+
+          var parsedD = parseDateForMonthFilter(targetDateVal);
+          if (parsedD) {
+            var monthNum = (parsedD.getMonth() + 1).toString();
+            matchBulan = (monthNum === selectedBulan);
+          } else {
+            matchBulan = false;
+          }
+        }
+
+        return matchDivisi && matchWilayah && matchStatus && matchBulan;
       });
 
       const prioritasStatus = { "Overdue": 1, "On Progress": 2 };
