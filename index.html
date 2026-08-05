@@ -693,8 +693,19 @@
     }
     .chat-toggle:hover { transform: scale(1.1) rotate(-10deg); }
 
-    /* RESPONSIVE */
+    /* RESPONSIVE & MOBILE HEADER OPTIMIZATION ENGINE */
     @media (max-width: 768px) {
+      /* TOPBAR AUTO-SCROLL & COMPACT PADDING UNTUK HP (ANDROID & IPHONE) */
+      .topbar-modern {
+        position: relative !important; /* Header ter-scroll alami ke atas di HP, tidak menutupi layar */
+        padding: 12px 16px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+      }
+      .topbar-modern h4 {
+        font-size: 1.15rem !important;
+      }
       .container { padding-left: 15px; padding-right: 15px; }
       .kpi-container { margin-top: -50px; padding: 0 5px; }
       .card-kpi { padding: 1.2rem !important; border-radius: 1rem !important; min-height: 110px; margin-bottom: 0; }
@@ -1118,21 +1129,24 @@
     <!-- RIGHT MAIN PANEL -->
     <div class="main-panel">
       
-      <!-- TOP HEADER WITH "TANYA BAGAS" BUTTON POSITIONED BELOW SUBTITLE -->
+      <!-- TOP HEADER WITH ADAPTIVE MOBILE LAYOUT ENGINE -->
       <header class="topbar-modern">
         <div>
           <h4 class="fw-800 m-0 text-navy" style="letter-spacing: -0.5px;">Dashboard Weekly Report</h4>
-          <div class="small text-slate mt-0.5 mb-2">Konsolidasi laporan progres mingguan divisi sebagai instrumen akuntabilitas kinerja & keputusan strategis pimpinan.</div>
+          <!-- DESKRIPSI OTOMATIS SEMBUNYI DI HP UNTUK MENGHEMAT RUANG LAYAR (D-NONE D-MD-BLOCK) -->
+          <div class="small text-slate mt-0.5 mb-2 d-none d-md-block">Konsolidasi laporan progres mingguan divisi sebagai instrumen akuntabilitas kinerja & keputusan strategis pimpinan.</div>
           
-          <!-- TOMBOL TANYA BAGAS (PERSIS DIBAWAH DESKRIPSI) -->
-          <div>
-            <button class="btn btn-primary fw-bold px-3 py-1.5 rounded-pill shadow-sm d-inline-flex align-items-center gap-2" id="btnTanyaHeader" onclick="openTanyaModal()" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); border: none; font-size: 0.82rem;">
+          <!-- TOMBOL TANYA BAGAS (ADAPTIF & RINGKAS DENGAN MARGIN FLEKSIBEL) -->
+          <div class="mt-1 mt-md-2">
+            <button class="btn btn-primary fw-bold px-3 py-1.5 rounded-pill shadow-sm d-inline-flex align-items-center gap-2" id="btnTanyaHeader" onclick="openTanyaModal()" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); border: none; font-size: 0.8rem;">
               <i class="fas fa-robot text-warning fs-6"></i>
               <span>TANYA BAGAS</span>
             </button>
           </div>
         </div>
-        <div class="d-flex align-items-center gap-3">
+
+        <!-- ACTION BUTTONS: ALIGNED RIGHT ON DESKTOP, EVENLY SPACED ON MOBILE -->
+        <div class="d-flex align-items-center justify-content-between justify-content-md-end gap-3 mt-1 mt-md-0">
 
           <div class="position-relative cursor-pointer bell-notification-btn d-flex align-items-center justify-content-center p-2" 
                data-bs-toggle="modal" 
@@ -1145,7 +1159,7 @@
 
           <!-- LOGIN / USER BADGE -->
           <div>
-            <button class="btn btn-primary rounded-3 px-4 py-2 fw-bold text-sm d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#loginModal" id="loginBtn">
+            <button class="btn btn-primary rounded-3 px-3 py-1.5 fw-bold text-sm d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#loginModal" id="loginBtn" style="font-size: 0.82rem;">
               <i class="fas fa-user-lock"></i> LOGIN
             </button>
             <div id="userBadge" class="d-none d-flex align-items-center gap-2 border rounded-pill p-1 pe-2 bg-light shadow-sm">
