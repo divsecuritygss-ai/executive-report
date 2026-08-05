@@ -1118,14 +1118,22 @@
     <!-- RIGHT MAIN PANEL -->
     <div class="main-panel">
       
-      <!-- TOP HEADER -->
+      <!-- TOP HEADER WITH "TANYA BAGAS" BUTTON POSITIONED BELOW SUBTITLE -->
       <header class="topbar-modern">
         <div>
           <h4 class="fw-800 m-0 text-navy" style="letter-spacing: -0.5px;">Dashboard Weekly Report</h4>
-          <div class="small text-slate mt-0.5">Konsolidasi laporan progres mingguan divisi sebagai instrumen akuntabilitas kinerja & keputusan strategis pimpinan.</div>
-        </div>
-        <div class="d-flex align-items-center gap-4">
+          <div class="small text-slate mt-0.5 mb-2">Konsolidasi laporan progres mingguan divisi sebagai instrumen akuntabilitas kinerja & keputusan strategis pimpinan.</div>
           
+          <!-- TOMBOL TANYA BAGAS (PERSIS DIBAWAH DESKRIPSI) -->
+          <div>
+            <button class="btn btn-primary fw-bold px-3 py-1.5 rounded-pill shadow-sm d-inline-flex align-items-center gap-2" id="btnTanyaHeader" onclick="openTanyaModal()" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); border: none; font-size: 0.82rem;">
+              <i class="fas fa-robot text-warning fs-6"></i>
+              <span>TANYA BAGAS</span>
+            </button>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+
           <div class="position-relative cursor-pointer bell-notification-btn d-flex align-items-center justify-content-center p-2" 
                data-bs-toggle="modal" 
                data-bs-target="#updateModal" 
@@ -1681,6 +1689,69 @@
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
+    </div>
+  </div>
+
+  <!-- MODAL INTELLIGENT DATA ASSISTANT ("TANYA") -->
+  <div class="modal fade" id="tanyaModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        
+        <!-- MODAL HEADER ASISTEN BAGAS -->
+        <div class="modal-header border-bottom px-4 py-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;">
+              <i class="fas fa-robot fs-5"></i>
+            </div>
+            <div>
+              <h5 class="modal-title fw-800 text-navy mb-0" style="font-size: 1.1rem;">Asisten Data & Informasi ("TANYA BAGAS")</h5>
+              <small class="text-slate">Halo! Saya <b>BAGAS</b>, siap melayani seluruh kebutuhan data & laporan dalam aplikasi ini.</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <!-- MODAL BODY & QUERY DISPLAY AREA -->
+        <div class="modal-body p-4" style="max-height: 65vh; overflow-y: auto;">
+          <!-- REKOMENDASI PERTANYAAN CEPAT (FULL HUMANIS SENTENCES LAYOUT) -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-slate text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Contoh Pertanyaan Langsung (Klik untuk Memilih):</label>
+            <div class="d-flex flex-column gap-2">
+              <button class="btn btn-sm btn-light border text-navy text-start rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 hover-bg-light transition-all" style="font-size: 0.82rem;" onclick="setTanyaQuery('Apakah ada pekerjaan overdue pada bulan ini?')">
+                <i class="fas fa-bolt text-warning fs-6 me-1"></i>
+                <span>Apakah ada pekerjaan overdue pada bulan ini?</span>
+              </button>
+              <button class="btn btn-sm btn-light border text-navy text-start rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 hover-bg-light transition-all" style="font-size: 0.82rem;" onclick="setTanyaQuery('Tampilkan rincian pekerjaan divisi security yang harus segera ditindaklanjuti')">
+                <i class="fas fa-shield-alt text-primary fs-6 me-1"></i>
+                <span>Tampilkan rincian pekerjaan divisi security yang harus segera ditindaklanjuti</span>
+              </button>
+              <button class="btn btn-sm btn-light border text-navy text-start rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 hover-bg-light transition-all" style="font-size: 0.82rem;" onclick="setTanyaQuery('Berapa persen pekerjaan yang diselesaikan pada bulan ini?')">
+                <i class="fas fa-chart-pie text-success fs-6 me-1"></i>
+                <span>Berapa persen pekerjaan yang diselesaikan pada bulan ini?</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- CONTAINER HASIL JAWABAN -->
+          <div id="tanyaAnswerContainer" class="p-3 rounded-3 border bg-light" style="min-height: 140px;">
+            <div class="text-center text-slate py-4">
+              <i class="fas fa-comments fa-2x mb-2 opacity-50"></i>
+              <p class="mb-0 small">Ketik pertanyaan Anda di bawah atau pilih tombol pertanyaan cepat di atas.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL FOOTER & INPUT BOX -->
+        <div class="modal-footer border-top p-3">
+          <div class="input-group">
+            <input type="text" id="inputTanyaQuery" class="form-control bg-light border-0 shadow-none py-2 px-3" placeholder="Contoh: Berapa total task di wilayah ITA?" onkeypress="if(event.key === 'Enter') processTanyaQuery()">
+            <button class="btn btn-primary px-4 fw-bold" onclick="processTanyaQuery()">
+              <i class="fas fa-paper-plane me-1"></i> Tanya
+            </button>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
@@ -2941,15 +3012,42 @@
         `;
       }
 
-      // DAFTAR NAMA AKUN PERSONAL / NON-DIVISI YANG WAJIB DISEMBUNYIKAN DARI FILTER DIVISI OPERASIONAL
-      const excludedAccounts = ['admin', 'bli nengah'];
+      // REGEX SANITIZER: DETEKSI STRING HASH SHA-256 / MD5
+      const hashPattern = /^[a-f0-9]{32,64}$/i;
 
-      divList.forEach(div => { 
+      // DAFTAR KATA KUNCI NON-DIVISI / DIREKSI / MANAGEMENT
+      const nonDivisionKeywords = [
+        'admin', 'bli nengah', 'direksi', 'direktur', 'commissioner', 
+        'board', 'management', 'executive', 'pimpinan', 'secretary', 'ceo', 'cfo', 'coo', 'komisaris'
+      ];
+
+      // AMBIL DIVISI OPERASIONAL NYATA DARI DATABASE AKTIVITAS (ALLDATA)
+      const operationalDivsFromData = new Set();
+      if (typeof allData !== 'undefined' && Array.isArray(allData)) {
+        allData.forEach(item => {
+          if (item && item.Divisi) {
+            const cleanD = item.Divisi.toString().trim();
+            if (cleanD && !hashPattern.test(cleanD)) {
+              operationalDivsFromData.add(cleanD);
+            }
+          }
+        });
+      }
+
+      // GABUNGKAN DAFTAR USERS DENGAN DAFTAR AKTIVITAS REAL
+      const combinedDivs = new Set([...divList, ...Array.from(operationalDivsFromData)]);
+
+      combinedDivs.forEach(div => { 
         if (!div) return;
         const cleanDiv = div.toString().trim();
         
-        // EKSKLUSI KHUSUS: ABAIKAN AKUN MANAGEMENT / NON-DIVISI
-        if (excludedAccounts.includes(cleanDiv.toLowerCase())) return;
+        // 1. ABAIKAN STRING BERBENTUK ENKRIPSI HASH
+        if (hashPattern.test(cleanDiv)) return;
+
+        // 2. ABAIKAN KATA KUNCI NON-DIVISI / DIREKSI / PERSONAL
+        const lowerDiv = cleanDiv.toLowerCase();
+        const isNonDivision = nonDivisionKeywords.some(key => lowerDiv.includes(key));
+        if (isNonDivision) return;
 
         if (filterDivisi) {
           filterDivisi.innerHTML += `<option value="${cleanDiv}">${cleanDiv}</option>`; 
@@ -3893,6 +3991,360 @@
           markerRegistry[c.name].setPopupContent(popupContent);
         }
       });
+    }
+
+    // ==========================================
+    // INTELLIGENT DATA ASSISTANT ("TANYA") ENGINE
+    // ==========================================
+    function openTanyaModal() {
+      const modalEl = document.getElementById('tanyaModal');
+      if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+      }
+    }
+
+    function setTanyaQuery(text) {
+      const input = document.getElementById('inputTanyaQuery');
+      if (input) {
+        input.value = text;
+        processTanyaQuery();
+      }
+    }
+
+    function processTanyaQuery() {
+      const input = document.getElementById('inputTanyaQuery');
+      const container = document.getElementById('tanyaAnswerContainer');
+      if (!input || !container) return;
+
+      const q = input.value.trim();
+      if (!q) return;
+
+      const qLower = q.toLowerCase();
+
+      // INDIKATOR LOADING CERDAS
+      container.innerHTML = `
+        <div class="text-center py-4 text-primary">
+          <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+          <span class="small fw-bold">Halo! Saya BAGAS sedang menganalisis seluruh data aplikasi untuk Anda...</span>
+        </div>
+      `;
+
+      setTimeout(() => {
+        // GABUNGKAN BASIS DATA (AKTIF + ARSIP REKAP)
+        const combinedData = [];
+        if (typeof allData !== 'undefined' && Array.isArray(allData)) {
+          allData.forEach(item => combinedData.push({...item, _sourceType: 'active'}));
+        }
+        if (typeof archiveData !== 'undefined' && Array.isArray(archiveData)) {
+          archiveData.forEach(item => combinedData.push({...item, _sourceType: 'archive'}));
+        }
+
+        // KAMUS ENTITAS BULAN, DIVISI, DAN WILAYAH
+        const monthMap = {
+          "januari": 1, "jan": 1, "februari": 2, "feb": 2, "maret": 3, "mar": 3,
+          "april": 4, "apr": 4, "mei": 5, "juni": 6, "jun": 6, "juli": 7, "jul": 7,
+          "agustus": 8, "ags": 8, "agu": 8, "september": 9, "sep": 9, "oktober": 10, "okt": 10,
+          "november": 11, "nov": 11, "desember": 12, "des": 12
+        };
+
+        const knownDivisions = ["security", "medical", "gss", "hc ir", "hc c&b", "hc p&d", "hc tpc", "lm&ga", "csr", "legal", "scm", "kangean"];
+        const knownRegions = ["jakarta", "pge", "ita", "bentu", "tonga", "gebang", "siak", "kampar", "aceh energi", "s-cpp", "korinci baru", "multi"];
+
+        // DETEKSI ENTITAS DARI PERTANYAAN
+        let targetMonth = null;
+        let targetMonthName = "";
+        for (let mKey in monthMap) {
+          if (qLower.includes(mKey)) {
+            targetMonth = monthMap[mKey];
+            targetMonthName = mKey.charAt(0).toUpperCase() + mKey.slice(1);
+            break;
+          }
+        }
+
+        let matchedDiv = knownDivisions.find(d => qLower.includes(d)) || "";
+        let matchedWil = knownRegions.find(w => qLower.includes(w)) || "";
+
+        // DETEKSI INTENT OVERDUE / POTENSI OVERDUE / DONE / PROGRESS
+        let isOverdueQuery = qLower.includes("overdue") || qLower.includes("terlambat") || qLower.includes("lewat");
+        let isDoneQuery = qLower.includes("done") || qLower.includes("completed") || qLower.includes("selesai") || qLower.includes("% selesai") || qLower.includes("persen");
+        let isProgressQuery = qLower.includes("progress") || qLower.includes("berjalan");
+
+        // DETEKSI RELEVANSI DENGAN DOMAIN APLIKASI (APP SCOPE DETECTOR)
+        const isAppDomain = isOverdueQuery || isDoneQuery || isProgressQuery || matchedDiv || matchedWil || targetMonth !== null ||
+                            qLower.includes("aktivitas") || qLower.includes("pekerjaan") || qLower.includes("laporan") || 
+                            qLower.includes("tugas") || qLower.includes("divisi") || qLower.includes("wilayah") || 
+                            qLower.includes("rekap") || qLower.includes("progres") || qLower.includes("kendala") || 
+                            qLower.includes("tindak lanjut") || qLower.includes("next step") || qLower.includes("summary");
+
+        // JIKA USER MENANYAKAN HAL DI LUAR SCOPE DATA APLIKASI (OFF-TOPIC GUARDRAIL)
+        if (!isAppDomain) {
+          container.innerHTML = `
+            <div class="p-3 rounded-3 border bg-light mb-3">
+              <h6 class="fw-bold text-navy mb-2 d-flex align-items-center gap-2">
+                <i class="fas fa-robot fs-5 text-primary"></i> Halo! Saya BAGAS
+              </h6>
+              <div class="small text-navy lh-base" style="font-size: 0.88rem;">
+                Salam hangat! Saya <b>BAGAS</b> (Bantu Analisis & Grafis Aplikasi Sistem), siap melayani seluruh kebutuhan data Anda dalam aplikasi ini. 😊<br><br>
+                <div class="p-2 rounded bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                  <i class="fas fa-exclamation-circle me-1"></i> <b>Fokus Pelayanan Data Aplikasi:</b> Mohon maaf, agar informasi yang disajikan selalu presisi, tugas saya difokuskan untuk melayani pertanyaan seputar <b>data dan laporan operasional di dalam aplikasi ini saja</b>.
+                </div><br>
+                Silakan tanyakan hal-hal terkait aktivitas operasional, contohnya:
+                <ul class="mb-0 mt-1 text-slate">
+                  <li><i>"Apakah ada pekerjaan overdue pada bulan ini?"</i></li>
+                  <li><i>"Tampilkan rincian pekerjaan divisi security yang harus segera ditindaklanjuti"</i></li>
+                  <li><i>"Berapa persen pekerjaan yang diselesaikan pada bulan ini?"</i></li>
+                </ul>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        // HELPER DATE PARSER UNTUK FILTER TANGGAL
+        function getItemMonth(item) {
+          var dateVal = (item._sourceType === 'archive' || (item.Status || "").toLowerCase() === "done")
+            ? (item.Timestamp || item.Tanggal_Selesai)
+            : (item.Tanggal_Selesai || item.Tanggal_Mulai || item.Timestamp);
+          
+          if (!dateVal) return null;
+          if (dateVal instanceof Date) return dateVal.getMonth() + 1;
+          var str = dateVal.toString().trim();
+          
+          if (str.match(/^\d{4}-\d{2}-\d{2}/)) {
+            var p = str.split('T')[0].split('-');
+            return parseInt(p[1], 10);
+          }
+          if (str.includes('/')) {
+            var p = str.split(' ')[0].split('/');
+            if (p.length === 3) {
+              var n1 = parseInt(p[0], 10);
+              var n2 = parseInt(p[1], 10);
+              var n3 = parseInt(p[2], 10);
+              if (n1 > 12) return n2; // DD/MM/YYYY
+              if (n2 > 12) return n1; // MM/DD/YYYY
+              return n2; // Default Month
+            }
+          }
+          var d = new Date(str);
+          return isNaN(d.getTime()) ? null : d.getMonth() + 1;
+        }
+
+        // PENYARINGAN DATA AKTIVITAS
+        let matches = combinedData.filter(item => {
+          const divStr = (item.Divisi || "").toLowerCase();
+          const wilStr = (item.Wilayah_Kerja || "").toLowerCase();
+          const logicLabel = (item._sourceType === 'archive' || (item.Status || "").toLowerCase() === "done")
+            ? "Done"
+            : getLogicStatus(item).label;
+
+          // Match Divisi
+          if (matchedDiv && !divStr.includes(matchedDiv)) return false;
+
+          // Match Wilayah
+          if (matchedWil && !wilStr.includes(matchedWil)) return false;
+
+          // Match Bulan
+          if (targetMonth !== null) {
+            const itemM = getItemMonth(item);
+            if (itemM !== targetMonth) return false;
+          }
+
+          // Match Status Intent
+          if (isOverdueQuery && logicLabel !== "Overdue") return false;
+          if (isDoneQuery && logicLabel !== "Done") return false;
+          if (isProgressQuery && logicLabel !== "On Progress") return false;
+
+          return true;
+        });
+
+        // FORMULASI RESPON HUMANIS & PINTAR DENGAN SALAM PERTAMA DARI BAGAS
+        let humanTitle = "";
+        let humanNarrative = "";
+        let statusBadgeColor = "bg-primary-subtle text-primary";
+
+        const divNameUpper = matchedDiv ? matchedDiv.toUpperCase() : "SEMUA DIVISI";
+        const monthText = targetMonthName ? `bulan ${targetMonthName}` : "periode berjalan";
+
+        if (isOverdueQuery) {
+          if (matches.length === 0) {
+            statusBadgeColor = "bg-success-subtle text-success";
+            humanTitle = `Kabar Baik! Tidak Ada Pekerjaan Overdue`;
+            humanNarrative = `Saya sudah memeriksa seluruh basis data laporan untuk <b>Divisi ${divNameUpper}</b> pada <b>${monthText}</b>. <br><br>🎉 <b>Hasilnya: Tidak ditemukan pekerjaan yang overdue atau berpotensi terlambat.</b> Seluruh tugas berjalan sesuai jadwal dan dalam kondisi aman!`;
+            
+            // JIKA OVERDUE 0, TAMPILKAN ALTERNATIF PEKERJAAN LAIN DI BULAN TERSEBUT SEBAGAI KONTEKS CERDAS
+            const allMonthTasks = combinedData.filter(item => {
+              const divStr = (item.Divisi || "").toLowerCase();
+              if (matchedDiv && !divStr.includes(matchedDiv)) return false;
+              return getItemMonth(item) === (targetMonth || (new Date().getMonth() + 1));
+            });
+
+            if (allMonthTasks.length > 0) {
+              humanNarrative += `<br><br>💡 Sebagai rujukan pimpinan, berikut adalah <b>${allMonthTasks.length} pekerjaan ${divNameUpper}</b> yang terdaftar pada <b>${monthText}</b> (status On Progress / Done):`;
+              matches = allMonthTasks;
+            }
+          } else {
+            statusBadgeColor = "bg-danger-subtle text-danger";
+            humanTitle = `Perhatian: Ada ${matches.length} Pekerjaan Overdue`;
+            humanNarrative = `Saya telah menganalisis seluruh basis data dan menemukan <b>${matches.length} pekerjaan ${divNameUpper}</b> pada <b>${monthText}</b> yang berstatus <span class="text-danger fw-bold">Overdue / Melewati Tenggat Waktu</span>.`;
+          }
+        } else if (isDoneQuery) {
+          const totalMonthTasks = combinedData.filter(item => getItemMonth(item) === (targetMonth || (new Date().getMonth() + 1))).length;
+          const pctDone = totalMonthTasks > 0 ? Math.round((matches.length / totalMonthTasks) * 100) : 0;
+
+          humanTitle = `Laporan Capaian Penyelesaian Pekerjaan (${pctDone}% Completed)`;
+          humanNarrative = `Berdasarkan kalkulasi data pada <b>${monthText}</b>, tingkat penyelesaian pekerjaan untuk <b>Divisi ${divNameUpper}</b> mencapai <b class="text-success fs-6">${pctDone}%</b> (total <b>${matches.length} dari ${totalMonthTasks} task</b> telah diselesaikan).`;
+        } else {
+          humanTitle = `Ringkasan & Analisis Aktivitas ${divNameUpper}`;
+          humanNarrative = `Berdasarkan analisis data untuk <b>Divisi ${divNameUpper}</b> pada <b>${monthText}</b>, terdapat total <b>${matches.length} aktivitas</b> terdaftar.`;
+        }
+
+        // ==========================================================
+        // STRUKTUR KALKULASI RINGKASAN EKSEKUTIF & ANALISIS DISTRIBUSI
+        // ==========================================================
+        const divDistribution = {};
+        const wilDistribution = {};
+        let totalProgressPctSum = 0;
+
+        matches.forEach(item => {
+          let d = cleanXSS(item.Divisi || "Lainnya");
+          let w = cleanXSS(item.Wilayah_Kerja || "Global");
+          divDistribution[d] = (divDistribution[d] || 0) + 1;
+          wilDistribution[w] = (wilDistribution[w] || 0) + 1;
+          let pVal = parseInt((item.Progres || "0").toString().replace('%','')) || 0;
+          totalProgressPctSum += pVal;
+        });
+
+        const sortedDivs = Object.entries(divDistribution).sort((a,b) => b[1] - a[1]);
+        const sortedWils = Object.entries(wilDistribution).sort((a,b) => b[1] - a[1]);
+
+        const topDivName = sortedDivs.length > 0 ? sortedDivs[0][0] : "-";
+        const topDivCount = sortedDivs.length > 0 ? sortedDivs[0][1] : 0;
+        const avgProgress = matches.length > 0 ? Math.round(totalProgressPctSum / matches.length) : 0;
+
+        // RENDERING DAFTAR ITEMS RINCIAN
+        const displayLimit = 15;
+        const itemsToDisplay = matches.slice(0, displayLimit);
+
+        let itemsHtml = itemsToDisplay.map((item, idx) => {
+          let statObj = (item._sourceType === 'archive' || (item.Status || "").toLowerCase() === "done")
+            ? { label: "Completed", class: "status-done" }
+            : getLogicStatus(item);
+
+          let progVal = parseInt((item.Progres || "0").toString().replace('%','')) || 0;
+          let targetDateFormatted = formatToDdmmyy(item.Tanggal_Selesai || item.Timestamp);
+
+          return `
+            <div class="p-3 mb-2 rounded-3 border bg-white shadow-sm transition-all" style="border-left: 4px solid var(--royal) !important;">
+              <div class="d-flex justify-content-between align-items-start mb-1 gap-2">
+                <div class="fw-bold text-navy" style="font-size:0.9rem; line-height: 1.35;">
+                  <span class="text-slate me-1">${idx + 1}.</span> ${cleanXSS(item.Aktivitas)}
+                </div>
+                <span class="badge-status ${statObj.class} flex-shrink-0" style="font-size:0.65rem; padding: 3px 9px;">${statObj.label}</span>
+              </div>
+              
+              <div class="d-flex flex-wrap gap-2 align-items-center my-2 text-slate" style="font-size:0.75rem;">
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5"><i class="fas fa-building me-1"></i>${cleanXSS(item.Divisi || '-')}</span>
+                <span class="badge bg-light text-slate border px-2 py-0.5"><i class="fas fa-map-marker-alt me-1 text-danger"></i>${cleanXSS(item.Wilayah_Kerja || 'Global')}</span>
+                <span><i class="far fa-calendar-alt me-1"></i>Tenggat: <b>${targetDateFormatted}</b></span>
+                <span><i class="fas fa-tasks me-1"></i>Progres: <b>${progVal}%</b></span>
+              </div>
+
+              ${item.Tindak_Lanjut ? `
+                <div class="p-2 rounded bg-light border-start border-3 border-primary small text-navy mt-1" style="font-size:0.78rem;">
+                  <b>Rencana Aksi (Next Steps):</b> ${cleanXSS(item.Tindak_Lanjut)}
+                </div>
+              ` : ''}
+              ${item.Notes ? `
+                <div class="small text-slate mt-1" style="font-size:0.75rem;">
+                  <i>Catatan Strategis: ${cleanXSS(item.Notes)}</i>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        let finalHtml = `
+          <div class="mb-3">
+            <div class="p-3 rounded-3 border ${statusBadgeColor} mb-3" style="background-color: var(--bs-body-bg);">
+              <h6 class="fw-bold mb-2 d-flex align-items-center gap-2">
+                <i class="fas fa-robot fs-5 text-primary"></i> ${humanTitle}
+              </h6>
+              <div class="small text-navy lh-base" style="font-size: 0.88rem;">
+                <div class="mb-2 text-primary fw-bold">
+                  <i class="fas fa-hand-wave me-1"></i> Halo! Saya BAGAS, siap membantu seluruh kebutuhan data Anda dalam aplikasi ini.
+                </div>
+                ${humanNarrative}
+              </div>
+            </div>
+
+            <!-- EXECUTIVE SUMMARY & ANALYSES BLOCK -->
+            <div class="p-3 rounded-3 border bg-white shadow-sm mb-3">
+              <h6 class="fw-bold text-navy mb-2 border-bottom pb-2" style="font-size:0.85rem;">
+                <i class="fas fa-chart-pie text-primary me-2"></i>RINGKASAN & ANALISIS DISTRIBUSI DATA
+              </h6>
+              
+              <!-- HIGHLIGHT METRICS -->
+              <div class="row g-2 mb-3 text-center">
+                <div class="col-4">
+                  <div class="p-2 rounded bg-light border">
+                    <div class="text-slate fw-bold" style="font-size:0.65rem;">TOTAL TASK</div>
+                    <div class="fw-800 text-navy fs-5">${matches.length}</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 rounded bg-light border">
+                    <div class="text-slate fw-bold" style="font-size:0.65rem;">KONTRIBUSI TERBANYAK</div>
+                    <div class="fw-800 text-primary fs-6 text-truncate" title="${topDivName}">${topDivName} (${topDivCount})</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 rounded bg-light border">
+                    <div class="text-slate fw-bold" style="font-size:0.65rem;">RATA-RATA PROGRES</div>
+                    <div class="fw-800 text-success fs-6">${avgProgress}%</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SEBARAN PER DIVISI -->
+              <div class="mb-2">
+                <div class="text-slate fw-bold mb-1" style="font-size:0.72rem;"><i class="fas fa-building me-1"></i>Sebaran Pekerjaan Per Divisi:</div>
+                <div class="d-flex flex-wrap gap-1">
+                  ${sortedDivs.map(([d, c]) => `<span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:0.7rem;">${d}: <b>${c} task</b></span>`).join(' ')}
+                </div>
+              </div>
+
+              <!-- SEBARAN PER WILAYAH -->
+              <div>
+                <div class="text-slate fw-bold mb-1" style="font-size:0.72rem;"><i class="fas fa-map-marker-alt me-1"></i>Sebaran Pekerjaan Per Wilayah Kerja:</div>
+                <div class="d-flex flex-wrap gap-1">
+                  ${sortedWils.map(([w, c]) => `<span class="badge bg-light text-slate border" style="font-size:0.7rem;">${w}: <b>${c} task</b></span>`).join(' ')}
+                </div>
+              </div>
+            </div>
+
+            ${itemsHtml ? `
+              <div class="fw-bold text-navy small mb-2">
+                <i class="fas fa-list-ol text-primary me-1"></i> Rincian detail seluruh pekerjaan di atas:
+              </div>
+            ` : ''}
+          </div>
+
+          ${itemsHtml ? `
+            <div class="rincian-list-box" style="max-height: 360px; overflow-y: auto; padding-right: 4px;">
+              ${itemsHtml}
+            </div>
+          ` : ''}
+
+          ${matches.length > displayLimit ? `
+            <div class="text-center text-slate small mt-2">
+              <i>* Menampilkan ${displayLimit} dari ${matches.length} rincian pekerjaan terdaftar.</i>
+            </div>
+          ` : ''}
+        `;
+
+        container.innerHTML = finalHtml;
+      }, 300);
     }
 </script>
 </body>
