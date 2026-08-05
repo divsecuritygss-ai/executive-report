@@ -4040,6 +4040,10 @@
           archiveData.forEach(item => combinedData.push({...item, _sourceType: 'archive'}));
         }
 
+        // DETEKSI KUERI HEADCOUNT / PERSONEL SDM (BUKAN TASK OPERASIONAL)
+        const headcountKeywords = ["personel", "personil", "anggota", "jumlah orang", "headcount", "manpower", "staf", "staff", "karyawan", "petugas", "orang", "anggota tim", "jumlah tim"];
+        const isHeadcountQuery = headcountKeywords.some(hk => qLower.includes(hk));
+
         // KAMUS ENTITAS BULAN, DIVISI, DAN WILAYAH
         const monthMap = {
           "januari": 1, "jan": 1, "februari": 2, "feb": 2, "maret": 3, "mar": 3,
@@ -4071,7 +4075,7 @@
         let isProgressQuery = qLower.includes("progress") || qLower.includes("berjalan");
 
         // DETEKSI RELEVANSI DENGAN DOMAIN APLIKASI (APP SCOPE DETECTOR)
-        const isAppDomain = isOverdueQuery || isDoneQuery || isProgressQuery || matchedDiv || matchedWil || targetMonth !== null ||
+        const isAppDomain = isOverdueQuery || isDoneQuery || isProgressQuery || matchedDiv || matchedWil || targetMonth !== null || isHeadcountQuery ||
                             qLower.includes("aktivitas") || qLower.includes("pekerjaan") || qLower.includes("laporan") || 
                             qLower.includes("tugas") || qLower.includes("divisi") || qLower.includes("wilayah") || 
                             qLower.includes("rekap") || qLower.includes("progres") || qLower.includes("kendala") || 
@@ -4096,6 +4100,82 @@
                   <li><i>"Berapa persen pekerjaan yang diselesaikan pada bulan ini?"</i></li>
                 </ul>
               </div>
+            </div>
+          `;
+          return;
+        }
+
+        // PENANGANAN KHUSUS DISAMBIGUASI KERIA HEADCOUNT / PERSONEL (SDM)
+        if (isHeadcountQuery) {
+          const divNameUpper = matchedDiv ? matchedDiv.toUpperCase() : "SECURITY";
+          const wilNameUpper = matchedWil ? matchedWil.toUpperCase() : "JAKARTA";
+
+          // Cari task terkait untuk dijadikan rujukan informasi tambahan
+          const relatedTasks = combinedData.filter(item => {
+            const dStr = (item.Divisi || "").toLowerCase();
+            const wStr = (item.Wilayah_Kerja || "").toLowerCase();
+            if (matchedDiv && !dStr.includes(matchedDiv)) return false;
+            if (matchedWil && !wStr.includes(matchedWil)) return false;
+            return true;
+          });
+
+          let itemsHtml = relatedTasks.slice(0, 10).map((item, idx) => {
+            let statObj = (item._sourceType === 'archive' || (item.Status || "").toLowerCase() === "done")
+              ? { label: "Completed", class: "status-done" }
+              : getLogicStatus(item);
+            let progVal = parseInt((item.Progres || "0").toString().replace('%','')) || 0;
+            let targetDateFormatted = formatToDdmmyy(item.Tanggal_Selesai || item.Timestamp);
+
+            return `
+              <div class="p-3 mb-2 rounded-3 border bg-white shadow-sm transition-all" style="border-left: 4px solid var(--royal) !important;">
+                <div class="d-flex justify-content-between align-items-start mb-1 gap-2">
+                  <div class="fw-bold text-navy" style="font-size:0.9rem; line-height: 1.35;">
+                    <span class="text-slate me-1">${idx + 1}.</span> ${cleanXSS(item.Aktivitas)}
+                  </div>
+                  <span class="badge-status ${statObj.class} flex-shrink-0" style="font-size:0.65rem; padding: 3px 9px;">${statObj.label}</span>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2 align-items-center my-2 text-slate" style="font-size:0.75rem;">
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5"><i class="fas fa-building me-1"></i>${cleanXSS(item.Divisi || '-')}</span>
+                  <span class="badge bg-light text-slate border px-2 py-0.5"><i class="fas fa-map-marker-alt me-1 text-danger"></i>${cleanXSS(item.Wilayah_Kerja || 'Global')}</span>
+                  <span><i class="far fa-calendar-alt me-1"></i>Tenggat: <b>${targetDateFormatted}</b></span>
+                  <span><i class="fas fa-tasks me-1"></i>Progres: <b>${progVal}%</b></span>
+                </div>
+
+                ${item.Tindak_Lanjut ? `
+                  <div class="p-2 rounded bg-light border-start border-3 border-primary small text-navy mt-1" style="font-size:0.78rem;">
+                    <b>Rencana Aksi (Next Steps):</b> ${cleanXSS(item.Tindak_Lanjut)}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('');
+
+          container.innerHTML = `
+            <div class="mb-3">
+              <div class="p-3 rounded-3 border bg-warning-subtle text-warning-emphasis mb-3 border-warning-subtle" style="background-color: var(--bs-body-bg);">
+                <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-navy">
+                  <i class="fas fa-robot fs-5 text-primary"></i> Penjelasan Asisten BAGAS
+                </h6>
+                <div class="small text-navy lh-base" style="font-size: 0.88rem;">
+                  <div class="mb-2 text-primary fw-bold">
+                    <i class="fas fa-hand-wave me-1"></i> Halo! Saya BAGAS, siap melayani kebutuhan data aplikasi Anda.
+                  </div>
+                  Mohon maaf, sistem ini dikembangkan khusus untuk memantau <b>Laporan Aktivitas & Progres Pekerjaan Mingguan</b> (kegiatan operasional), sehingga database aplikasi <b>tidak mencatat data jumlah personel / headcount SDM secara spesifik</b>.<br><br>
+                  <div class="p-2 rounded bg-info-subtle text-info-emphasis border border-info-subtle">
+                    <i class="fas fa-info-circle me-1"></i> <b>Rujukan Aktivitas Operasional:</b> Namun, jika yang Anda maksud adalah <b>kegiatan / tugas operasional</b> Divisi <b>${divNameUpper}</b> di wilayah <b>${wilNameUpper}</b>, terdapat total <b>${relatedTasks.length} aktivitas terdaftar</b>.
+                  </div>
+                </div>
+              </div>
+
+              ${relatedTasks.length > 0 ? `
+                <div class="fw-bold text-navy small mb-2">
+                  <i class="fas fa-list-ol text-primary me-1"></i> Daftar aktivitas operasional Divisi ${divNameUpper} di ${wilNameUpper}:
+                </div>
+                <div class="rincian-list-box" style="max-height: 320px; overflow-y: auto; padding-right: 4px;">
+                  ${itemsHtml}
+                </div>
+              ` : ''}
             </div>
           `;
           return;
@@ -4130,7 +4210,7 @@
           return isNaN(d.getTime()) ? null : d.getMonth() + 1;
         }
 
-        // PENYARINGAN DATA AKTIVITAS
+        // PENYARINGAN DATA AKTIVITAS NORMAL
         let matches = combinedData.filter(item => {
           const divStr = (item.Divisi || "").toLowerCase();
           const wilStr = (item.Wilayah_Kerja || "").toLowerCase();
