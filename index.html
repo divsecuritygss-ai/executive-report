@@ -659,6 +659,53 @@
     .skeleton-line.short { width: 40%; }
     .skeleton-line.medium { width: 70%; }
 
+    /* PORTRAIT OVERDUE ALERT WIDGET & MANUAL SCROLLABLE TICKER STYLES */
+    .overdue-portrait-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(244, 63, 94, 0.06);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 600px;
+    }
+    [data-theme="dark"] .overdue-portrait-card {
+      background: var(--surface) !important;
+      border-color: rgba(244, 63, 94, 0.35) !important;
+    }
+    .vertical-ticker-body {
+      flex-grow: 1;
+      overflow-y: auto;
+      max-height: 520px;
+      padding-right: 6px;
+      scroll-behavior: smooth;
+    }
+    .vertical-ticker-body::-webkit-scrollbar {
+      width: 5px;
+    }
+    .vertical-ticker-body::-webkit-scrollbar-thumb {
+      background: rgba(244, 63, 94, 0.3);
+      border-radius: 10px;
+    }
+    .overdue-div-item {
+      background: #FFF5F5;
+      border: 1px solid #FFE3E3;
+      border-left: 4px solid #F43F5E !important;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      transition: all 0.2s ease;
+    }
+    [data-theme="dark"] .overdue-div-item {
+      background: rgba(244, 63, 94, 0.08) !important;
+      border-color: rgba(244, 63, 94, 0.2) !important;
+    }
+    .overdue-div-item:hover {
+      transform: translateX(3px);
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.12);
+    }
+
     /* FLOATING CHAT WIDGET (ELEVATED POSITION TO PREVENT SEND BUTTON OVERLAP) */
     .chat-widget {
         position: fixed; bottom: 105px; right: 30px;
@@ -1180,7 +1227,7 @@
       <!-- VIEW 1: DASHBOARD EXACT IMAGE LAYOUT REPLICA   -->
       <!-- ============================================== -->
       <main id="homeView" class="p-4 pb-5">
-        
+
         <!-- ROW 1: 5 EXECUTIVE KPI CARDS (RESPONSIVE GRID) -->
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
           <!-- CARD 1: TOTAL AKTIVITAS -->
@@ -1240,48 +1287,79 @@
           </div>
         </div>
 
-        <!-- ROW 2: MAP, BAR CHART, PIE CHART (100% PERFECT EQUAL HEIGHT & BOTTOM ALIGNED) -->
+        <!-- ROW 2: MAIN DASHBOARD WORKSPACE GRID (KIRI: PETA + CHARTS | KANAN: PORTRAIT OVERDUE ALERT) -->
         <div class="row g-3 mb-4 align-items-stretch">
-          <!-- KIRI: PETA -->
-          <div class="col-xl-5 d-flex flex-column">
-            <div class="chart-card flex-grow-1 d-flex flex-column p-4 h-100">
+          
+          <!-- KELOMPOK KIRI: PETA & GRAPH CHARTS (COL-XL-7) -->
+          <div class="col-xl-7 d-flex flex-column gap-3">
+            
+            <!-- KIRI ATAS: PETA -->
+            <div class="chart-card p-4">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-bold m-0 text-navy">Pemetaan Geografis Wilayah Kerja</h6>
                 <button class="btn btn-sm btn-light border px-3 fw-bold text-navy bg-white shadow-sm" style="font-size: 0.75rem;"><i class="fas fa-external-link-alt me-1"></i> Lihat Detail</button>
               </div>
-              <div class="map-container-relative flex-grow-1 rounded-3 overflow-hidden" id="mapContainer" style="min-height: 260px; height: 100%; position:relative;">
+              <div class="map-container-relative rounded-3 overflow-hidden" id="mapContainer" style="height: 260px; position:relative;">
                 <div id="map3d" style="position:absolute; top:0; left:0; width:100%; height:100%;"></div>
               </div>
             </div>
-          </div>
-          
-          <!-- KANAN KELOMPOK (BAR CHART & PIE CHART) -->
-          <div class="col-xl-7 d-flex flex-column">
-            <div class="row g-3 h-100 align-items-stretch flex-grow-1">
-              <!-- TENGAH: BAR CHART -->
+
+            <!-- KIRI BAWAH: BAR CHART & PIE CHART BERDAMPINGAN -->
+            <div class="row g-3 flex-grow-1 align-items-stretch">
               <div class="col-md-7 d-flex flex-column">
                 <div class="chart-card flex-grow-1 d-flex flex-column p-4 h-100">
-                  <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="fw-bold m-0 text-navy">Beban Kerja per Divisi</h6>
-                    <div class="border rounded px-2 py-1 bg-light small text-slate fw-bold"><i class="fas fa-chart-bar me-1"></i> Distribusi <i class="fas fa-chevron-down ms-1"></i></div>
+                    <div class="border rounded px-2 py-1 bg-light small text-slate fw-bold" style="font-size:0.7rem;"><i class="fas fa-chart-bar me-1"></i> Distribusi</div>
                   </div>
-                  <div class="small text-slate fw-bold mb-2" style="font-size: 0.65rem;">DIVISI</div>
-                  <div class="flex-grow-1 position-relative d-flex align-items-center" style="min-height: 220px; height: 100%;"><canvas id="mainBarChart"></canvas></div>
+                  <div class="small text-slate fw-bold mb-1" style="font-size: 0.65rem;">DIVISI</div>
+                  <div class="flex-grow-1 position-relative d-flex align-items-center" style="min-height: 210px; height: 100%;"><canvas id="mainBarChart"></canvas></div>
                 </div>
               </div>
-              <!-- KANAN: PIE CHART (CLEAN NON-OVERLAPPING CONTAINER) -->
               <div class="col-md-5 d-flex flex-column">
                 <div class="chart-card flex-grow-1 d-flex flex-column p-4 h-100">
                   <h6 class="fw-bold m-0 text-navy mb-2">Status Progres</h6>
-                  <div class="flex-grow-1 position-relative d-flex flex-column justify-content-center align-items-center" style="min-height: 230px; height: 100%;">
-                     <div style="height: 210px; width: 100%; position:relative;" class="d-flex align-items-center justify-content-center">
+                  <div class="flex-grow-1 position-relative d-flex flex-column justify-content-center align-items-center" style="min-height: 210px; height: 100%;">
+                     <div style="height: 195px; width: 100%; position:relative;" class="d-flex align-items-center justify-content-center">
                        <canvas id="mainPieChart"></canvas>
                      </div>
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
+
+          <!-- KELOMPOK KANAN: PORTRAIT OVERDUE ALERT CENTER (COL-XL-5) -->
+          <div class="col-xl-5 d-flex flex-column">
+            <div class="overdue-portrait-card p-4 h-100" id="overdueAlertCenter">
+              <div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-3">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width:36px; height:36px;">
+                    <i class="fas fa-exclamation-triangle fs-6"></i>
+                  </div>
+                  <div>
+                    <h6 class="fw-800 text-danger mb-0" style="font-size:0.95rem;">OVERDUE ALERT CENTER</h6>
+                    <small class="text-slate" style="font-size:0.72rem;">Klik Kartu Divisi untuk Melihat Detail Laporan</small>
+                  </div>
+                </div>
+                <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 fw-bold" id="staticOverdueTotalBadge">0 Overdue</span>
+              </div>
+
+              <!-- VERTICAL TICKER CONTAINER (CONTINUOUS INFINITE ROLLING & INTERACTIVE CLICKABLE) -->
+              <div class="vertical-ticker-body" id="verticalTickerBody">
+                <!-- Rincian kartu divisi & task diisi secara dinamis oleh JavaScript -->
+              </div>
+
+              <!-- FOOTER RESET FILTER OVERDUE CENTER (POJOK KANAN BAWAH) -->
+              <div class="pt-3 border-top mt-auto d-flex justify-content-end align-items-center">
+                <button class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1.5 shadow-sm hover-bg-danger" onclick="resetFilters()" title="Reset semua filter data ke kondisi awal" style="font-size:0.75rem;">
+                  <i class="fas fa-sync-alt"></i> Reset Filter
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- ROW 3: LINE CHART -->
@@ -3315,6 +3393,150 @@
       renderAll(filtered);
       refreshCharts(filtered);
       updateMapPopups(filtered);
+      renderOverdueAlertCenter(filtered);
+    }
+
+    // =========================================================================
+    // ENGINE PORTRAIT OVERDUE ALERT (CONTINUOUS INFINITE ROLLING & CLICK FILTER)
+    // =========================================================================
+    let verticalTickerTimer = null;
+    let isTickerUserInteracting = false;
+    let tickerUserInteractTimeout = null;
+
+    function filterByOverdueCard(divName) {
+      const selectDiv = document.getElementById('filterDivisi');
+      const selectStatus = document.getElementById('filterStatus');
+      
+      if (selectDiv) selectDiv.value = divName;
+      if (selectStatus) selectStatus.value = 'Overdue';
+
+      switchView('table');
+    }
+
+    function renderOverdueAlertCenter(dataToProcess) {
+      const tickerContainer = document.getElementById('verticalTickerBody');
+      const totalBadge = document.getElementById('staticOverdueTotalBadge');
+
+      if (!tickerContainer) return;
+
+      const overdueItems = (dataToProcess || []).filter(item => getLogicStatus(item).label === "Overdue");
+
+      if (totalBadge) totalBadge.innerText = `${overdueItems.length} Overdue`;
+
+      if (overdueItems.length === 0) {
+        tickerContainer.innerHTML = `
+          <div class="text-center py-5 my-auto text-success">
+            <i class="fas fa-check-circle fa-3x mb-3 text-emerald"></i>
+            <h6 class="fw-bold text-navy mb-1">Semua Divisi On Schedule</h6>
+            <small class="text-slate">Tidak ada pekerjaan yang overdue saat ini.</small>
+          </div>
+        `;
+        if (verticalTickerTimer) clearInterval(verticalTickerTimer);
+        return;
+      }
+
+      // KELOMPOKKAN PEKERJAAN OVERDUE BERDASARKAN DIVISI & URUTKAN DARI JUMLAH TERBANYAK
+      const divGroup = {};
+      overdueItems.forEach(item => {
+        const div = item.Divisi || "Lainnya";
+        if (!divGroup[div]) divGroup[div] = [];
+        divGroup[div].push(item);
+      });
+
+      const sortedDivs = Object.keys(divGroup).sort((a,b) => divGroup[b].length - divGroup[a].length);
+
+      let cardsHtml = "";
+      sortedDivs.forEach(div => {
+        const items = divGroup[div];
+        const wilSet = new Set();
+        items.forEach(i => { if (i.Wilayah_Kerja) wilSet.add(i.Wilayah_Kerja.trim()); });
+        const wilList = Array.from(wilSet).join(", ") || "Global";
+
+        let tasksListHtml = items.slice(0, 3).map(i => 
+          `<div class="text-navy text-truncate small mb-1" style="font-size:0.75rem;" title="${cleanXSS(i.Aktivitas)}">
+            • ${cleanXSS(i.Aktivitas)} <span class="text-danger fw-bold">(${formatToDdmmyy(i.Tanggal_Selesai)})</span>
+          </div>`
+        ).join('');
+
+        if (items.length > 3) {
+          tasksListHtml += `<div class="small text-slate fw-bold" style="font-size:0.7rem;">+${items.length - 3} pekerjaan overdue lainnya...</div>`;
+        }
+
+        cardsHtml += `
+          <div class="overdue-div-item cursor-pointer" onclick="filterByOverdueCard('${cleanXSS(div)}')" style="cursor: pointer;" title="Klik untuk melihat rincian laporan overdue ${cleanXSS(div)}">
+            <div class="d-flex justify-content-between align-items-center mb-1.5">
+              <span class="fw-800 text-navy fs-6">${cleanXSS(div)}</span>
+              <span class="badge bg-danger text-white fw-bold rounded-pill px-2.5 py-1" style="font-size:0.7rem;">${items.length} Overdue <i class="fas fa-chevron-right ms-1" style="font-size:0.6rem;"></i></span>
+            </div>
+            <div class="small text-slate mb-2" style="font-size:0.72rem;">
+              <i class="fas fa-map-marker-alt text-danger me-1"></i>Wilayah: <b>${cleanXSS(wilList)}</b>
+            </div>
+            <div class="pt-1 border-top border-danger-subtle">
+              ${tasksListHtml}
+            </div>
+          </div>
+        `;
+      });
+
+      // GARANSI TINGGI MINIMUM UTK LOOP SEAMLESS: LIPATGANDAKAN JIKA DIVISI SEDIKIT
+      let baseUnit = cardsHtml;
+      if (sortedDivs.length <= 2) {
+        baseUnit = cardsHtml + cardsHtml + cardsHtml;
+      } else if (sortedDivs.length <= 4) {
+        baseUnit = cardsHtml + cardsHtml;
+      }
+
+      tickerContainer.innerHTML = `
+        <div id="tickerBlockOriginal">${baseUnit}</div>
+        <div id="tickerBlockBuffer">${baseUnit}</div>
+      `;
+
+      if (verticalTickerTimer) clearInterval(verticalTickerTimer);
+
+      isTickerUserInteracting = false;
+
+      // HANDLER PAUSE SEMENTARA SAAT MANUALLY SCROLLING ATAU TOUCHING
+      function triggerUserInteractionPause(durationMs = 2500) {
+        isTickerUserInteracting = true;
+        if (tickerUserInteractTimeout) clearTimeout(tickerUserInteractTimeout);
+        tickerUserInteractTimeout = setTimeout(() => {
+          isTickerUserInteracting = false;
+        }, durationMs);
+      }
+
+      // Trackpad / Mouse Wheel & Mobile Touch Listeners
+      tickerContainer.onwheel = () => { triggerUserInteractionPause(3000); };
+      tickerContainer.ontouchstart = () => { triggerUserInteractionPause(4000); };
+      tickerContainer.ontouchmove = () => { triggerUserInteractionPause(4000); };
+
+      // Pause Spesifik Saat Cursor Diatas Kartu
+      const attachHoverListeners = () => {
+        const cardEls = tickerContainer.querySelectorAll('.overdue-div-item');
+        cardEls.forEach(card => {
+          card.onmouseenter = () => { isTickerUserInteracting = true; };
+          card.onmouseleave = () => { isTickerUserInteracting = false; };
+        });
+      };
+      attachHoverListeners();
+
+      // MESIN AUTO SCROLL CONTINUOUS INFINITE LOOP (SEAMLESS MATH LOOP)
+      verticalTickerTimer = setInterval(() => {
+        const origBlock = document.getElementById('tickerBlockOriginal');
+        if (!origBlock) return;
+
+        const singleSetHeight = origBlock.offsetHeight;
+        if (singleSetHeight <= 0) return;
+
+        // Gulir naik 1px jika user tidak sedang menyentuh/meng-hover kartu secara aktif
+        if (!isTickerUserInteracting) {
+          tickerContainer.scrollTop += 1;
+        }
+
+        // RESET MATEMATIKA PERPISAHAN: Jika posisi scroll melampaui tinggi blok pertama, kurangi sebesar singleSetHeight secara instan
+        if (tickerContainer.scrollTop >= singleSetHeight) {
+          tickerContainer.scrollTop -= singleSetHeight;
+        }
+      }, 35);
     }
 
     function getLogicStatus(item) {
