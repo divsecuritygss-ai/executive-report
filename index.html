@@ -3397,12 +3397,8 @@
     }
 
     // =========================================================================
-    // ENGINE PORTRAIT OVERDUE ALERT (CONTINUOUS INFINITE ROLLING & CLICK FILTER)
+    // ENGINE PORTRAIT OVERDUE ALERT CENTER (STABLE NATIVE MANUAL SCROLL ENGINE)
     // =========================================================================
-    let verticalTickerTimer = null;
-    let isTickerUserInteracting = false;
-    let tickerUserInteractTimeout = null;
-
     function filterByOverdueCard(divName) {
       const selectDiv = document.getElementById('filterDivisi');
       const selectStatus = document.getElementById('filterStatus');
@@ -3431,7 +3427,6 @@
             <small class="text-slate">Tidak ada pekerjaan yang overdue saat ini.</small>
           </div>
         `;
-        if (verticalTickerTimer) clearInterval(verticalTickerTimer);
         return;
       }
 
@@ -3478,65 +3473,8 @@
         `;
       });
 
-      // GARANSI TINGGI MINIMUM UTK LOOP SEAMLESS: LIPATGANDAKAN JIKA DIVISI SEDIKIT
-      let baseUnit = cardsHtml;
-      if (sortedDivs.length <= 2) {
-        baseUnit = cardsHtml + cardsHtml + cardsHtml;
-      } else if (sortedDivs.length <= 4) {
-        baseUnit = cardsHtml + cardsHtml;
-      }
-
-      tickerContainer.innerHTML = `
-        <div id="tickerBlockOriginal">${baseUnit}</div>
-        <div id="tickerBlockBuffer">${baseUnit}</div>
-      `;
-
-      if (verticalTickerTimer) clearInterval(verticalTickerTimer);
-
-      isTickerUserInteracting = false;
-
-      // HANDLER PAUSE SEMENTARA SAAT MANUALLY SCROLLING ATAU TOUCHING
-      function triggerUserInteractionPause(durationMs = 2500) {
-        isTickerUserInteracting = true;
-        if (tickerUserInteractTimeout) clearTimeout(tickerUserInteractTimeout);
-        tickerUserInteractTimeout = setTimeout(() => {
-          isTickerUserInteracting = false;
-        }, durationMs);
-      }
-
-      // Trackpad / Mouse Wheel & Mobile Touch Listeners
-      tickerContainer.onwheel = () => { triggerUserInteractionPause(3000); };
-      tickerContainer.ontouchstart = () => { triggerUserInteractionPause(4000); };
-      tickerContainer.ontouchmove = () => { triggerUserInteractionPause(4000); };
-
-      // Pause Spesifik Saat Cursor Diatas Kartu
-      const attachHoverListeners = () => {
-        const cardEls = tickerContainer.querySelectorAll('.overdue-div-item');
-        cardEls.forEach(card => {
-          card.onmouseenter = () => { isTickerUserInteracting = true; };
-          card.onmouseleave = () => { isTickerUserInteracting = false; };
-        });
-      };
-      attachHoverListeners();
-
-      // MESIN AUTO SCROLL CONTINUOUS INFINITE LOOP (SEAMLESS MATH LOOP)
-      verticalTickerTimer = setInterval(() => {
-        const origBlock = document.getElementById('tickerBlockOriginal');
-        if (!origBlock) return;
-
-        const singleSetHeight = origBlock.offsetHeight;
-        if (singleSetHeight <= 0) return;
-
-        // Gulir naik 1px jika user tidak sedang menyentuh/meng-hover kartu secara aktif
-        if (!isTickerUserInteracting) {
-          tickerContainer.scrollTop += 1;
-        }
-
-        // RESET MATEMATIKA PERPISAHAN: Jika posisi scroll melampaui tinggi blok pertama, kurangi sebesar singleSetHeight secara instan
-        if (tickerContainer.scrollTop >= singleSetHeight) {
-          tickerContainer.scrollTop -= singleSetHeight;
-        }
-      }, 35);
+      // RENDER BERSIH NATIVE MANUAL SCROLL (100% STABIL, SANGAT CEPAT, DAN BEBAS FREEZE/STACKING)
+      tickerContainer.innerHTML = cardsHtml;
     }
 
     function getLogicStatus(item) {
