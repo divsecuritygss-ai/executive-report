@@ -4268,420 +4268,5562 @@
       }
     }
 
-    function processTanyaQuery() {
-      const input = document.getElementById('inputTanyaQuery');
-      const container = document.getElementById('tanyaAnswerContainer');
-      if (!input || !container) return;
+  /* ============================================================
+ * ============================================================
+ * BAGAS CONVERSATIONAL DATA ASSISTANT v4.0
+ *
+ * Production-safe conversational engine
+ *
+ * Designed for:
+ * - Google Apps Script Web App
+ * - Existing allData / archiveData
+ * - Existing getLogicStatus()
+ * - Existing cleanXSS()
+ * - Existing formatToDdmmyy()
+ * - Existing setTanyaQuery()
+ *
+ * PRINCIPLE:
+ *
+ * 1. Conversation
+ * 2. Data Query
+ * 3. Clarification
+ * 4. Out of Scope
+ *
+ * BAGAS NEVER:
+ * - Fabricates data
+ * - Converts unknown query into SUMMARY
+ * - Treats an entity as an intent
+ * - Uses application data to answer unrelated questions
+ *
+ * ============================================================
+ * ============================================================ */
 
-      const q = input.value.trim();
-      if (!q) return;
 
-      const qLower = q.toLowerCase();
+/* ============================================================
+ * 01. MAIN ENTRY
+ * ============================================================ */
 
-      // INDIKATOR LOADING CERDAS
-      container.innerHTML = `
-        <div class="text-center py-4 text-primary">
-          <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-          <span class="small fw-bold">Halo! Saya BAGAS sedang menganalisis seluruh data aplikasi untuk Anda...</span>
+function processTanyaQuery() {
+
+  const input =
+    document.getElementById('inputTanyaQuery');
+
+  const container =
+    document.getElementById('tanyaAnswerContainer');
+
+  if (!input || !container) {
+    return;
+  }
+
+  const rawQuery =
+    String(input.value || '').trim();
+
+  if (!rawQuery) {
+
+    BAGAS_renderWelcome(container);
+
+    return;
+  }
+
+
+  BAGAS_ensureStyles();
+
+
+  container.innerHTML = `
+    <div class="bagas-loading">
+
+      <div class="bagas-loading-icon">
+        <i class="fas fa-robot"></i>
+      </div>
+
+      <div>
+        <div class="bagas-loading-title">
+          BAGAS sedang memahami pertanyaan Anda
         </div>
-      `;
 
-      setTimeout(() => {
-        // GABUNGKAN BASIS DATA (AKTIF + ARSIP REKAP)
-        const combinedData = [];
-        if (typeof allData !== 'undefined' && Array.isArray(allData)) {
-          allData.forEach(item => combinedData.push({...item, _sourceType: 'active'}));
-        }
-        if (typeof archiveData !== 'undefined' && Array.isArray(archiveData)) {
-          archiveData.forEach(item => combinedData.push({...item, _sourceType: 'archive'}));
-        }
+        <div class="bagas-loading-text">
+          Menyesuaikan pertanyaan dengan data yang tersedia...
+        </div>
+      </div>
 
-        // DETEKSI KUERI HEADCOUNT / PERSONEL SDM (BUKAN TASK OPERASIONAL)
-        const headcountKeywords = ["personel", "personil", "anggota", "jumlah orang", "headcount", "manpower", "staf", "staff", "karyawan", "petugas", "orang", "anggota tim", "jumlah tim"];
-        const isHeadcountQuery = headcountKeywords.some(hk => qLower.includes(hk));
+    </div>
+  `;
 
-        // KAMUS ENTITAS BULAN, DIVISI, DAN WILAYAH
-        const monthMap = {
-          "januari": 1, "jan": 1, "februari": 2, "feb": 2, "maret": 3, "mar": 3,
-          "april": 4, "apr": 4, "mei": 5, "juni": 6, "jun": 6, "juli": 7, "jul": 7,
-          "agustus": 8, "ags": 8, "agu": 8, "september": 9, "sep": 9, "oktober": 10, "okt": 10,
-          "november": 11, "nov": 11, "desember": 12, "des": 12
-        };
 
-        const knownDivisions = ["security", "medical", "gss", "hc ir", "hc c&b", "hc p&d", "hc tpc", "lm&ga", "csr", "legal", "scm", "kangean"];
-        const knownRegions = ["jakarta", "pge", "ita", "bentu", "tonga", "gebang", "siak", "kampar", "aceh energi", "s-cpp", "korinci baru", "multi"];
+  setTimeout(function() {
 
-        // DETEKSI ENTITAS DARI PERTANYAAN
-        let targetMonth = null;
-        let targetMonthName = "";
-        for (let mKey in monthMap) {
-          if (qLower.includes(mKey)) {
-            targetMonth = monthMap[mKey];
-            targetMonthName = mKey.charAt(0).toUpperCase() + mKey.slice(1);
-            break;
-          }
-        }
+    try {
 
-        let matchedDiv = knownDivisions.find(d => qLower.includes(d)) || "";
-        let matchedWil = knownRegions.find(w => qLower.includes(w)) || "";
+      /* ======================================================
+       * DATA
+       * ====================================================== */
 
-        // DETEKSI INTENT OVERDUE / POTENSI OVERDUE / DONE / PROGRESS
-        let isOverdueQuery = qLower.includes("overdue") || qLower.includes("terlambat") || qLower.includes("lewat");
-        let isDoneQuery = qLower.includes("done") || qLower.includes("completed") || qLower.includes("selesai") || qLower.includes("% selesai") || qLower.includes("persen");
-        let isProgressQuery = qLower.includes("progress") || qLower.includes("berjalan");
+      const data =
+        BAGAS_getData();
 
-        // DETEKSI RELEVANSI DENGAN DOMAIN APLIKASI (APP SCOPE DETECTOR)
-        const isAppDomain = isOverdueQuery || isDoneQuery || isProgressQuery || matchedDiv || matchedWil || targetMonth !== null || isHeadcountQuery ||
-                            qLower.includes("aktivitas") || qLower.includes("pekerjaan") || qLower.includes("laporan") || 
-                            qLower.includes("tugas") || qLower.includes("divisi") || qLower.includes("wilayah") || 
-                            qLower.includes("rekap") || qLower.includes("progres") || qLower.includes("kendala") || 
-                            qLower.includes("tindak lanjut") || qLower.includes("next step") || qLower.includes("summary");
 
-        // JIKA USER MENANYAKAN HAL DI LUAR SCOPE DATA APLIKASI (OFF-TOPIC GUARDRAIL)
-        if (!isAppDomain) {
-          container.innerHTML = `
-            <div class="p-3 rounded-3 border bg-light mb-3">
-              <h6 class="fw-bold text-navy mb-2 d-flex align-items-center gap-2">
-                <i class="fas fa-robot fs-5 text-primary"></i> Halo! Saya BAGAS
-              </h6>
-              <div class="small text-navy lh-base" style="font-size: 0.88rem;">
-                Salam hangat! Saya <b>BAGAS</b> (Bantu Analisis & Grafis Aplikasi Sistem), siap melayani seluruh kebutuhan data Anda dalam aplikasi ini. 😊<br><br>
-                <div class="p-2 rounded bg-warning-subtle text-warning-emphasis border border-warning-subtle">
-                  <i class="fas fa-exclamation-circle me-1"></i> <b>Fokus Pelayanan Data Aplikasi:</b> Mohon maaf, agar informasi yang disajikan selalu presisi, tugas saya difokuskan untuk melayani pertanyaan seputar <b>data dan laporan operasional di dalam aplikasi ini saja</b>.
-                </div><br>
-                Silakan tanyakan hal-hal terkait aktivitas operasional, contohnya:
-                <ul class="mb-0 mt-1 text-slate">
-                  <li><i>"Apakah ada pekerjaan overdue pada bulan ini?"</i></li>
-                  <li><i>"Tampilkan rincian pekerjaan divisi security yang harus segera ditindaklanjuti"</i></li>
-                  <li><i>"Berapa persen pekerjaan yang diselesaikan pada bulan ini?"</i></li>
-                </ul>
-              </div>
-            </div>
-          `;
-          return;
-        }
+      /* ======================================================
+       * CONVERSATION GUARD
+       *
+       * Harus dilakukan sebelum domain analysis.
+       * ====================================================== */
 
-        // PENANGANAN KHUSUS DISAMBIGUASI KERIA HEADCOUNT / PERSONEL (SDM)
-        if (isHeadcountQuery) {
-          const divNameUpper = matchedDiv ? matchedDiv.toUpperCase() : "SECURITY";
-          const wilNameUpper = matchedWil ? matchedWil.toUpperCase() : "JAKARTA";
+      const conversation =
+        BAGAS_detectConversation(
+          rawQuery
+        );
 
-          // Cari task terkait untuk dijadikan rujukan informasi tambahan
-          const relatedTasks = combinedData.filter(item => {
-            const dStr = (item.Divisi || "").toLowerCase();
-            const wStr = (item.Wilayah_Kerja || "").toLowerCase();
-            if (matchedDiv && !dStr.includes(matchedDiv)) return false;
-            if (matchedWil && !wStr.includes(matchedWil)) return false;
-            return true;
+
+      if (
+        conversation !== 'DATA'
+      ) {
+
+        BAGAS_renderConversation(
+          container,
+          conversation,
+          rawQuery
+        );
+
+        return;
+      }
+
+
+      /* ======================================================
+       * ENTITIES
+       * ====================================================== */
+
+      const divisions =
+        BAGAS_getDivisions(
+          data
+        );
+
+      const regions =
+        BAGAS_getRegions(
+          data
+        );
+
+
+      /* ======================================================
+       * DOMAIN GUARD
+       * ====================================================== */
+
+      const domain =
+        BAGAS_checkDomain(
+          rawQuery,
+          divisions,
+          regions
+        );
+
+
+      if (
+        domain === 'OUT_OF_SCOPE'
+      ) {
+
+        BAGAS_renderOutOfScope(
+          container,
+          rawQuery
+        );
+
+        return;
+      }
+
+
+      if (
+        domain === 'CLARIFICATION'
+      ) {
+
+        BAGAS_renderClarification(
+          container,
+          rawQuery
+        );
+
+        return;
+      }
+
+
+      /* ======================================================
+       * PARSE QUERY
+       * ====================================================== */
+
+      const query =
+        BAGAS_parseQuery(
+          rawQuery,
+          divisions,
+          regions
+        );
+
+
+      /* ======================================================
+       * UNKNOWN INTENT
+       * ====================================================== */
+
+      if (
+        query.intent === 'UNKNOWN'
+      ) {
+
+        BAGAS_renderClarification(
+          container,
+          rawQuery
+        );
+
+        return;
+      }
+
+
+      /* ======================================================
+       * FILTER
+       * ====================================================== */
+
+      const filtered =
+        BAGAS_filterData(
+          data,
+          query
+        );
+
+
+      /* ======================================================
+       * ANALYSIS
+       * ====================================================== */
+
+      const analysis =
+        BAGAS_analyze(
+          filtered
+        );
+
+
+      /* ======================================================
+       * ANSWER
+       * ====================================================== */
+
+      const answer =
+        BAGAS_generateAnswer(
+          query,
+          analysis
+        );
+
+
+      /* ======================================================
+       * RENDER
+       * ====================================================== */
+
+      BAGAS_renderDataAnswer(
+        container,
+        query,
+        analysis,
+        answer,
+        filtered
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        '[BAGAS v4]',
+        error
+      );
+
+      BAGAS_renderError(
+        container
+      );
+
+    }
+
+  }, 180);
+
+}
+
+
+/* ============================================================
+ * 02. DATA
+ * ============================================================ */
+
+function BAGAS_getData() {
+
+  const result = [];
+
+
+  try {
+
+    if (
+      typeof allData !== 'undefined' &&
+      Array.isArray(allData)
+    ) {
+
+      allData.forEach(function(item) {
+
+        if (
+          item &&
+          typeof item === 'object'
+        ) {
+
+          result.push({
+            ...item,
+            _sourceType: 'active'
           });
 
-          let itemsHtml = relatedTasks.slice(0, 10).map((item, idx) => {
-            let statObj = (item._sourceType === 'archive' || (item.Status || "").toLowerCase() === "done")
-              ? { label: "Completed", class: "status-done" }
-              : getLogicStatus(item);
-            let progVal = parseInt((item.Progres || "0").toString().replace('%','')) || 0;
-            let targetDateFormatted = formatToDdmmyy(item.Tanggal_Selesai || item.Timestamp);
-
-            return `
-              <div class="p-3 mb-2 rounded-3 border bg-white shadow-sm transition-all" style="border-left: 4px solid var(--royal) !important;">
-                <div class="d-flex justify-content-between align-items-start mb-1 gap-2">
-                  <div class="fw-bold text-navy" style="font-size:0.9rem; line-height: 1.35;">
-                    <span class="text-slate me-1">${idx + 1}.</span> ${cleanXSS(item.Aktivitas)}
-                  </div>
-                  <span class="badge-status ${statObj.class} flex-shrink-0" style="font-size:0.65rem; padding: 3px 9px;">${statObj.label}</span>
-                </div>
-                
-                <div class="d-flex flex-wrap gap-2 align-items-center my-2 text-slate" style="font-size:0.75rem;">
-                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5"><i class="fas fa-building me-1"></i>${cleanXSS(item.Divisi || '-')}</span>
-                  <span class="badge bg-light text-slate border px-2 py-0.5"><i class="fas fa-map-marker-alt me-1 text-danger"></i>${cleanXSS(item.Wilayah_Kerja || 'Global')}</span>
-                  <span><i class="far fa-calendar-alt me-1"></i>Tenggat: <b>${targetDateFormatted}</b></span>
-                  <span><i class="fas fa-tasks me-1"></i>Progres: <b>${progVal}%</b></span>
-                </div>
-
-                ${item.Tindak_Lanjut ? `
-                  <div class="p-2 rounded bg-light border-start border-3 border-primary small text-navy mt-1" style="font-size:0.78rem;">
-                    <b>Rencana Aksi (Next Steps):</b> ${cleanXSS(item.Tindak_Lanjut)}
-                  </div>
-                ` : ''}
-              </div>
-            `;
-          }).join('');
-
-          container.innerHTML = `
-            <div class="mb-3">
-              <div class="p-3 rounded-3 border bg-warning-subtle text-warning-emphasis mb-3 border-warning-subtle" style="background-color: var(--bs-body-bg);">
-                <h6 class="fw-bold mb-2 d-flex align-items-center gap-2 text-navy">
-                  <i class="fas fa-robot fs-5 text-primary"></i> Penjelasan Asisten BAGAS
-                </h6>
-                <div class="small text-navy lh-base" style="font-size: 0.88rem;">
-                  <div class="mb-2 text-primary fw-bold">
-                    <i class="fas fa-hand-wave me-1"></i> Halo! Saya BAGAS, siap melayani kebutuhan data aplikasi Anda.
-                  </div>
-                  Mohon maaf, sistem ini dikembangkan khusus untuk memantau <b>Laporan Aktivitas & Progres Pekerjaan Mingguan</b> (kegiatan operasional), sehingga database aplikasi <b>tidak mencatat data jumlah personel / headcount SDM secara spesifik</b>.<br><br>
-                  <div class="p-2 rounded bg-info-subtle text-info-emphasis border border-info-subtle">
-                    <i class="fas fa-info-circle me-1"></i> <b>Rujukan Aktivitas Operasional:</b> Namun, jika yang Anda maksud adalah <b>kegiatan / tugas operasional</b> Divisi <b>${divNameUpper}</b> di wilayah <b>${wilNameUpper}</b>, terdapat total <b>${relatedTasks.length} aktivitas terdaftar</b>.
-                  </div>
-                </div>
-              </div>
-
-              ${relatedTasks.length > 0 ? `
-                <div class="fw-bold text-navy small mb-2">
-                  <i class="fas fa-list-ol text-primary me-1"></i> Daftar aktivitas operasional Divisi ${divNameUpper} di ${wilNameUpper}:
-                </div>
-                <div class="rincian-list-box" style="max-height: 320px; overflow-y: auto; padding-right: 4px;">
-                  ${itemsHtml}
-                </div>
-              ` : ''}
-            </div>
-          `;
-          return;
         }
 
-        // HELPER DATE PARSER UNTUK FILTER TANGGAL
-        function getItemMonth(item) {
-          var dateVal = (item._sourceType === 'archive' || (item.Status || "").toLowerCase() === "done")
-            ? (item.Timestamp || item.Tanggal_Selesai)
-            : (item.Tanggal_Selesai || item.Tanggal_Mulai || item.Timestamp);
-          
-          if (!dateVal) return null;
-          if (dateVal instanceof Date) return dateVal.getMonth() + 1;
-          var str = dateVal.toString().trim();
-          
-          if (str.match(/^\d{4}-\d{2}-\d{2}/)) {
-            var p = str.split('T')[0].split('-');
-            return parseInt(p[1], 10);
-          }
-          if (str.includes('/')) {
-            var p = str.split(' ')[0].split('/');
-            if (p.length === 3) {
-              var n1 = parseInt(p[0], 10);
-              var n2 = parseInt(p[1], 10);
-              var n3 = parseInt(p[2], 10);
-              if (n1 > 12) return n2; // DD/MM/YYYY
-              if (n2 > 12) return n1; // MM/DD/YYYY
-              return n2; // Default Month
-            }
-          }
-          var d = new Date(str);
-          return isNaN(d.getTime()) ? null : d.getMonth() + 1;
+      });
+
+    }
+
+  } catch (e) {
+
+    console.warn(
+      '[BAGAS] allData error',
+      e
+    );
+
+  }
+
+
+  try {
+
+    if (
+      typeof archiveData !== 'undefined' &&
+      Array.isArray(archiveData)
+    ) {
+
+      archiveData.forEach(function(item) {
+
+        if (
+          item &&
+          typeof item === 'object'
+        ) {
+
+          result.push({
+            ...item,
+            _sourceType: 'archive'
+          });
+
         }
 
-        // PENYARINGAN DATA AKTIVITAS NORMAL
-        let matches = combinedData.filter(item => {
-          const divStr = (item.Divisi || "").toLowerCase();
-          const wilStr = (item.Wilayah_Kerja || "").toLowerCase();
-          const logicLabel = (item._sourceType === 'archive' || (item.Status || "").toLowerCase() === "done")
-            ? "Done"
-            : getLogicStatus(item).label;
+      });
 
-          // Match Divisi
-          if (matchedDiv && !divStr.includes(matchedDiv)) return false;
+    }
 
-          // Match Wilayah
-          if (matchedWil && !wilStr.includes(matchedWil)) return false;
+  } catch (e) {
 
-          // Match Bulan
-          if (targetMonth !== null) {
-            const itemM = getItemMonth(item);
-            if (itemM !== targetMonth) return false;
-          }
+    console.warn(
+      '[BAGAS] archiveData error',
+      e
+    );
 
-          // Match Status Intent
-          if (isOverdueQuery && logicLabel !== "Overdue") return false;
-          if (isDoneQuery && logicLabel !== "Done") return false;
-          if (isProgressQuery && logicLabel !== "On Progress") return false;
+  }
 
-          return true;
-        });
 
-        // FORMULASI RESPON HUMANIS & PINTAR DENGAN SALAM PERTAMA DARI BAGAS
-        let humanTitle = "";
-        let humanNarrative = "";
-        let statusBadgeColor = "bg-primary-subtle text-primary";
+  return result;
 
-        const divNameUpper = matchedDiv ? matchedDiv.toUpperCase() : "SEMUA DIVISI";
-        const monthText = targetMonthName ? `bulan ${targetMonthName}` : "periode berjalan";
+}
 
-        if (isOverdueQuery) {
-          if (matches.length === 0) {
-            statusBadgeColor = "bg-success-subtle text-success";
-            humanTitle = `Kabar Baik! Tidak Ada Pekerjaan Overdue`;
-            humanNarrative = `Saya sudah memeriksa seluruh basis data laporan untuk <b>Divisi ${divNameUpper}</b> pada <b>${monthText}</b>. <br><br>🎉 <b>Hasilnya: Tidak ditemukan pekerjaan yang overdue atau berpotensi terlambat.</b> Seluruh tugas berjalan sesuai jadwal dan dalam kondisi aman!`;
-            
-            // JIKA OVERDUE 0, TAMPILKAN ALTERNATIF PEKERJAAN LAIN DI BULAN TERSEBUT SEBAGAI KONTEKS CERDAS
-            const allMonthTasks = combinedData.filter(item => {
-              const divStr = (item.Divisi || "").toLowerCase();
-              if (matchedDiv && !divStr.includes(matchedDiv)) return false;
-              return getItemMonth(item) === (targetMonth || (new Date().getMonth() + 1));
-            });
 
-            if (allMonthTasks.length > 0) {
-              humanNarrative += `<br><br>💡 Sebagai rujukan pimpinan, berikut adalah <b>${allMonthTasks.length} pekerjaan ${divNameUpper}</b> yang terdaftar pada <b>${monthText}</b> (status On Progress / Done):`;
-              matches = allMonthTasks;
-            }
-          } else {
-            statusBadgeColor = "bg-danger-subtle text-danger";
-            humanTitle = `Perhatian: Ada ${matches.length} Pekerjaan Overdue`;
-            humanNarrative = `Saya telah menganalisis seluruh basis data dan menemukan <b>${matches.length} pekerjaan ${divNameUpper}</b> pada <b>${monthText}</b> yang berstatus <span class="text-danger fw-bold">Overdue / Melewati Tenggat Waktu</span>.`;
-          }
-        } else if (isDoneQuery) {
-          const totalMonthTasks = combinedData.filter(item => getItemMonth(item) === (targetMonth || (new Date().getMonth() + 1))).length;
-          const pctDone = totalMonthTasks > 0 ? Math.round((matches.length / totalMonthTasks) * 100) : 0;
+/* ============================================================
+ * 03. NORMALIZER
+ * ============================================================ */
 
-          humanTitle = `Laporan Capaian Penyelesaian Pekerjaan (${pctDone}% Completed)`;
-          humanNarrative = `Berdasarkan kalkulasi data pada <b>${monthText}</b>, tingkat penyelesaian pekerjaan untuk <b>Divisi ${divNameUpper}</b> mencapai <b class="text-success fs-6">${pctDone}%</b> (total <b>${matches.length} dari ${totalMonthTasks} task</b> telah diselesaikan).`;
-        } else {
-          humanTitle = `Ringkasan & Analisis Aktivitas ${divNameUpper}`;
-          humanNarrative = `Berdasarkan analisis data untuk <b>Divisi ${divNameUpper}</b> pada <b>${monthText}</b>, terdapat total <b>${matches.length} aktivitas</b> terdaftar.`;
+function BAGAS_normalize(value) {
+
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s%/-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+}
+
+
+/* ============================================================
+ * 04. HTML ESCAPE
+ * ============================================================ */
+
+function BAGAS_escape(value) {
+
+  const text =
+    String(value ?? '');
+
+
+  try {
+
+    if (
+      typeof cleanXSS === 'function'
+    ) {
+
+      return cleanXSS(text);
+
+    }
+
+  } catch (e) {}
+
+
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+}
+
+
+/* ============================================================
+ * 05. SAFE SUGGESTION QUERY
+ * ============================================================ */
+
+function BAGAS_runSuggestion(
+  encoded
+) {
+
+  try {
+
+    const query =
+      decodeURIComponent(
+        encoded || ''
+      );
+
+
+    if (
+      typeof setTanyaQuery === 'function'
+    ) {
+
+      setTanyaQuery(query);
+
+      return;
+    }
+
+
+    const input =
+      document.getElementById(
+        'inputTanyaQuery'
+      );
+
+
+    if (input) {
+
+      input.value =
+        query;
+
+      input.focus();
+
+    }
+
+  } catch (e) {
+
+    console.error(
+      '[BAGAS] suggestion error',
+      e
+    );
+
+  }
+
+}
+
+
+function BAGAS_encode(
+  value
+) {
+
+  return encodeURIComponent(
+    String(value || '')
+  );
+
+}
+
+
+/* ============================================================
+ * 06. CONVERSATION DETECTOR
+ *
+ * IMPORTANT:
+ *
+ * "Selamat malam"
+ * -> GREETING
+ *
+ * "Selamat malam, berapa overdue?"
+ * -> DATA
+ *
+ * "Terima kasih BAGAS"
+ * -> THANKS
+ *
+ * "Terima kasih, tampilkan overdue"
+ * -> DATA
+ * ============================================================ */
+
+function BAGAS_detectConversation(
+  rawQuery
+) {
+
+  const q =
+    BAGAS_normalize(
+      rawQuery
+    );
+
+
+  if (!q) {
+    return 'EMPTY';
+  }
+
+
+  /* ----------------------------------------------------------
+   * DATA INDICATORS
+   * ---------------------------------------------------------- */
+
+  const dataTerms = [
+
+    'pekerjaan',
+    'task',
+    'aktivitas',
+    'kegiatan',
+    'tugas',
+
+    'overdue',
+    'terlambat',
+    'jatuh tempo',
+    'melewati target',
+
+    'selesai',
+    'done',
+    'completed',
+
+    'progress',
+    'progres',
+    'kemajuan',
+
+    'target',
+
+    'laporan',
+    'data',
+    'report',
+    'monitoring',
+    'dashboard',
+
+    'kinerja',
+    'performa',
+    'capaian',
+
+    'divisi',
+    'departemen',
+    'department',
+    'tim',
+
+    'wilayah',
+    'site',
+    'lokasi',
+
+    'kendala',
+    'hambatan',
+    'masalah',
+
+    'tindak lanjut',
+    'rencana aksi',
+
+    'berapa',
+    'jumlah',
+    'total',
+    'persen',
+    'persentase',
+
+    'kondisi'
+
+  ];
+
+
+  const hasData =
+    dataTerms.some(function(term) {
+
+      return q.includes(term);
+
+    });
+
+
+  if (hasData) {
+
+    return 'DATA';
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * GREETING
+   * ---------------------------------------------------------- */
+
+  const greetings = [
+
+    'halo',
+    'hai',
+    'hi',
+    'hello',
+
+    'selamat pagi',
+    'selamat siang',
+    'selamat sore',
+    'selamat malam',
+
+    'pagi',
+    'siang',
+    'sore',
+    'malam',
+
+    'assalamualaikum',
+    'assalamu alaikum'
+
+  ];
+
+
+  if (
+    greetings.includes(q)
+  ) {
+
+    return 'GREETING';
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * THANKS
+   * ---------------------------------------------------------- */
+
+  const thanks = [
+
+    'terima kasih',
+    'terimakasih',
+    'makasih',
+    'thanks',
+    'thank you',
+    'tks',
+    'thx'
+
+  ];
+
+
+  if (
+    thanks.some(function(x) {
+
+      return q === x ||
+             q.startsWith(x + ' ');
+
+    })
+  ) {
+
+    return 'THANKS';
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * FAREWELL
+   * ---------------------------------------------------------- */
+
+  const farewell = [
+
+    'selamat tinggal',
+    'sampai jumpa',
+    'sampai nanti',
+    'dadah',
+    'bye',
+    'goodbye'
+
+  ];
+
+
+  if (
+    farewell.includes(q)
+  ) {
+
+    return 'FAREWELL';
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * IDENTITY
+   * ---------------------------------------------------------- */
+
+  const identity = [
+
+    'siapa kamu',
+    'siapa anda',
+    'kamu siapa',
+    'anda siapa',
+    'apa itu bagas',
+    'siapa bagas',
+    'kamu bagas',
+    'apa yang bisa kamu lakukan',
+    'apa yang bisa kamu bantu',
+    'bisa bantu saya',
+    'kamu bisa apa'
+
+  ];
+
+
+  if (
+    identity.includes(q)
+  ) {
+
+    return 'IDENTITY';
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * GENERAL CONVERSATION
+   * ---------------------------------------------------------- */
+
+  const general = [
+
+    'apa kabar',
+    'bagaimana kabarmu',
+    'bagaimana kabar anda',
+    'senang bertemu',
+    'mantap',
+    'bagus',
+    'oke',
+    'ok',
+    'siap',
+    'baiklah'
+
+  ];
+
+
+  if (
+    general.includes(q)
+  ) {
+
+    return 'GENERAL';
+
+  }
+
+
+  return 'DATA';
+
+}
+
+
+/* ============================================================
+ * 07. DOMAIN GUARD
+ * ============================================================ */
+
+function BAGAS_checkDomain(
+  rawQuery,
+  divisions,
+  regions
+) {
+
+  const q =
+    BAGAS_normalize(
+      rawQuery
+    );
+
+
+  /* ----------------------------------------------------------
+   * EXPLICIT OUT OF SCOPE
+   * ---------------------------------------------------------- */
+
+  const forbidden = [
+
+    'ulang tahun',
+    'birthday',
+    'tanggal lahir',
+    'tempat lahir',
+
+    'umur',
+    'usia',
+
+    'istri',
+    'suami',
+    'anak',
+    'keluarga',
+
+    'hobi',
+    'zodiak',
+
+    'makanan favorit',
+    'minuman favorit',
+
+    'alamat pribadi',
+    'rumah pribadi',
+
+    'gaji',
+    'salary',
+    'bonus pribadi',
+
+    'nomor hp',
+    'nomor telepon pribadi',
+    'email pribadi',
+    'nik',
+
+    'buatkan puisi',
+    'buat puisi',
+    'pantun',
+    'lelucon',
+    'joke',
+
+    'film',
+    'lagu',
+    'musik',
+    'artis',
+    'selebriti',
+
+    'resep masakan',
+
+    'javascript',
+    'python',
+    'html',
+    'css',
+
+    'gemini gems',
+    'google apps script'
+
+  ];
+
+
+  if (
+    forbidden.some(function(x) {
+
+      return q.includes(x);
+
+    })
+  ) {
+
+    return 'OUT_OF_SCOPE';
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * VALID DATA CONTEXT
+   * ---------------------------------------------------------- */
+
+  const dataContext = [
+
+    'pekerjaan',
+    'task',
+    'aktivitas',
+    'kegiatan',
+
+    'overdue',
+    'terlambat',
+    'jatuh tempo',
+
+    'selesai',
+    'done',
+
+    'progress',
+    'progres',
+    'kemajuan',
+
+    'target',
+
+    'laporan',
+    'data',
+    'report',
+    'monitoring',
+    'dashboard',
+
+    'kinerja',
+    'performa',
+    'capaian',
+
+    'divisi',
+    'departemen',
+    'department',
+    'tim',
+
+    'wilayah',
+    'site',
+    'lokasi',
+
+    'kendala',
+    'hambatan',
+
+    'tindak lanjut',
+    'rencana aksi',
+
+    'berapa',
+    'jumlah',
+    'total',
+    'persen',
+    'persentase',
+
+    'kondisi'
+
+  ];
+
+
+  const hasContext =
+    dataContext.some(function(x) {
+
+      return q.includes(x);
+
+    });
+
+
+  if (hasContext) {
+
+    return 'IN_SCOPE';
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * ENTITY ALONE
+   *
+   * "Security"
+   *
+   * Jangan langsung jawab.
+   * Minta user memperjelas.
+   * ---------------------------------------------------------- */
+
+  const entity =
+    BAGAS_findEntity(
+      q,
+      divisions
+    ) ||
+    BAGAS_findEntity(
+      q,
+      regions
+    );
+
+
+  if (entity) {
+
+    return 'CLARIFICATION';
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * GENERAL UNKNOWN
+   * ---------------------------------------------------------- */
+
+  return 'OUT_OF_SCOPE';
+
+}
+
+
+/* ============================================================
+ * 08. ENTITIES
+ * ============================================================ */
+
+function BAGAS_getDivisions(
+  data
+) {
+
+  return [
+    ...new Set(
+      data
+        .map(function(item) {
+
+          return String(
+            item.Divisi || ''
+          ).trim();
+
+        })
+        .filter(Boolean)
+    )
+  ].sort(function(a, b) {
+
+    return b.length - a.length;
+
+  });
+
+}
+
+
+function BAGAS_getRegions(
+  data
+) {
+
+  return [
+    ...new Set(
+      data
+        .map(function(item) {
+
+          return String(
+            item.Wilayah_Kerja || ''
+          ).trim();
+
+        })
+        .filter(Boolean)
+    )
+  ].sort(function(a, b) {
+
+    return b.length - a.length;
+
+  });
+
+}
+
+
+function BAGAS_findEntity(
+  query,
+  entities
+) {
+
+  if (
+    !Array.isArray(entities)
+  ) {
+
+    return null;
+
+  }
+
+
+  for (
+    let i = 0;
+    i < entities.length;
+    i++
+  ) {
+
+    const entity =
+      BAGAS_normalize(
+        entities[i]
+      );
+
+
+    if (
+      entity &&
+      query.includes(entity)
+    ) {
+
+      return entities[i];
+
+    }
+
+  }
+
+
+  return null;
+
+}
+
+
+/* ============================================================
+ * 09. DATE
+ * ============================================================ */
+
+function BAGAS_dateInfo(
+  query
+) {
+
+  const now =
+    new Date();
+
+
+  const result = {
+
+    month: null,
+
+    monthName: '',
+
+    year: null
+
+  };
+
+
+  if (
+    query.includes('bulan ini') ||
+    query.includes('bulan sekarang')
+  ) {
+
+    result.month =
+      now.getMonth() + 1;
+
+    result.monthName =
+      BAGAS_monthName(
+        result.month
+      );
+
+  }
+
+
+  if (
+    query.includes('tahun ini') ||
+    query.includes('tahun sekarang')
+  ) {
+
+    result.year =
+      now.getFullYear();
+
+  }
+
+
+  const year =
+    query.match(
+      /\b(20\d{2})\b/
+    );
+
+
+  if (year) {
+
+    result.year =
+      parseInt(
+        year[1],
+        10
+      );
+
+  }
+
+
+  const months = {
+
+    januari: 1,
+    jan: 1,
+
+    februari: 2,
+    feb: 2,
+
+    maret: 3,
+    mar: 3,
+
+    april: 4,
+    apr: 4,
+
+    mei: 5,
+
+    juni: 6,
+    jun: 6,
+
+    juli: 7,
+    jul: 7,
+
+    agustus: 8,
+    ags: 8,
+    agu: 8,
+
+    september: 9,
+    sep: 9,
+
+    oktober: 10,
+    okt: 10,
+
+    november: 11,
+    nov: 11,
+
+    desember: 12,
+    des: 12
+
+  };
+
+
+  Object.keys(months).some(function(name) {
+
+    if (
+      query.includes(name)
+    ) {
+
+      result.month =
+        months[name];
+
+      result.monthName =
+        BAGAS_monthName(
+          result.month
+        );
+
+      return true;
+
+    }
+
+    return false;
+
+  });
+
+
+  return result;
+
+}
+
+
+function BAGAS_monthName(
+  month
+) {
+
+  const names = [
+
+    '',
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember'
+
+  ];
+
+
+  return names[month] || '';
+
+}
+
+
+/* ============================================================
+ * 10. METRIC
+ * ============================================================ */
+
+function BAGAS_detectMetric(
+  query
+) {
+
+  if (
+    (
+      query.includes('persen') ||
+      query.includes('persentase')
+    ) &&
+    (
+      query.includes('selesai') ||
+      query.includes('done') ||
+      query.includes('completed')
+    )
+  ) {
+
+    return 'COMPLETION_RATE';
+
+  }
+
+
+  if (
+    [
+      'overdue',
+      'terlambat',
+      'jatuh tempo',
+      'melewati target',
+      'lewat target'
+    ].some(function(x) {
+
+      return query.includes(x);
+
+    })
+  ) {
+
+    return 'OVERDUE';
+
+  }
+
+
+  if (
+    [
+      'selesai',
+      'done',
+      'completed',
+      'rampung',
+      'tuntas'
+    ].some(function(x) {
+
+      return query.includes(x);
+
+    })
+  ) {
+
+    return 'DONE';
+
+  }
+
+
+  if (
+    [
+      'progress',
+      'progres',
+      'kemajuan',
+      'perkembangan'
+    ].some(function(x) {
+
+      return query.includes(x);
+
+    })
+  ) {
+
+    return 'PROGRESS';
+
+  }
+
+
+  if (
+    [
+      'tindak lanjut',
+      'ditindaklanjuti',
+      'rencana aksi',
+      'next step',
+      'segera ditindaklanjuti'
+    ].some(function(x) {
+
+      return query.includes(x);
+
+    })
+  ) {
+
+    return 'ACTION';
+
+  }
+
+
+  if (
+    [
+      'kendala',
+      'hambatan',
+      'masalah',
+      'issue',
+      'problem'
+    ].some(function(x) {
+
+      return query.includes(x);
+
+    })
+  ) {
+
+    return 'ISSUE';
+
+  }
+
+
+  return null;
+
+}
+
+
+/* ============================================================
+ * 11. INTENT
+ * ============================================================ */
+
+function BAGAS_detectIntent(
+  query,
+  metric
+) {
+
+  /* Percentage FIRST */
+
+  if (
+    metric === 'COMPLETION_RATE'
+  ) {
+
+    return 'PERCENTAGE';
+
+  }
+
+
+  if (
+    [
+      'berapa',
+      'berapa jumlah',
+      'ada berapa',
+      'jumlah',
+      'total'
+    ].some(function(x) {
+
+      return query.includes(x);
+
+    })
+  ) {
+
+    return 'COUNT';
+
+  }
+
+
+  if (
+    [
+      'tampilkan',
+      'daftar',
+      'lihat',
+      'sebutkan',
+      'apa saja',
+      'yang mana saja',
+      'rincian'
+    ].some(function(x) {
+
+      return query.includes(x);
+
+    })
+  ) {
+
+    return 'LIST';
+
+  }
+
+
+  if (
+    [
+      'mana yang paling',
+      'paling banyak',
+      'paling sedikit',
+      'terbanyak',
+      'tertinggi',
+      'terendah',
+      'ranking',
+      'peringkat'
+    ].some(function(x) {
+
+      return query.includes(x);
+
+    })
+  ) {
+
+    return 'RANKING';
+
+  }
+
+
+  if (
+    [
+      'bagaimana progres',
+      'bagaimana progress',
+      'sejauh mana progres',
+      'sejauh mana progress'
+    ].some(function(x) {
+
+      return query.includes(x);
+
+    })
+  ) {
+
+    return 'PROGRESS';
+
+  }
+
+
+  if (
+    [
+      'bagaimana kondisi',
+      'kondisi pekerjaan',
+      'ringkasan',
+      'gambaran pekerjaan',
+      'bagaimana keadaan pekerjaan'
+    ].some(function(x) {
+
+      return query.includes(x);
+
+    })
+  ) {
+
+    return 'SUMMARY';
+
+  }
+
+
+  if (
+    metric === 'DONE'
+  ) {
+
+    return 'STATUS';
+
+  }
+
+
+  return 'UNKNOWN';
+
+}
+
+
+/* ============================================================
+ * 12. PARSE
+ * ============================================================ */
+
+function BAGAS_parseQuery(
+  rawQuery,
+  divisions,
+  regions
+) {
+
+  const q =
+    BAGAS_normalize(
+      rawQuery
+    );
+
+
+  const date =
+    BAGAS_dateInfo(
+      q
+    );
+
+
+  const metric =
+    BAGAS_detectMetric(
+      q
+    );
+
+
+  const intent =
+    BAGAS_detectIntent(
+      q,
+      metric
+    );
+
+
+  let division =
+    BAGAS_findEntity(
+      q,
+      divisions
+    );
+
+
+  let region =
+    BAGAS_findEntity(
+      q,
+      regions
+    );
+
+
+  let entityType = null;
+
+
+  if (
+    q.includes('divisi mana') ||
+    q.includes('departemen mana') ||
+    q.includes('department mana') ||
+    q.includes('tim mana')
+  ) {
+
+    entityType =
+      'DIVISION';
+
+    division =
+      null;
+
+  }
+
+
+  if (
+    q.includes('wilayah mana') ||
+    q.includes('site mana') ||
+    q.includes('lokasi mana')
+  ) {
+
+    entityType =
+      'REGION';
+
+    region =
+      null;
+
+  }
+
+
+  if (
+    division &&
+    !entityType
+  ) {
+
+    entityType =
+      'DIVISION';
+
+  }
+
+
+  if (
+    region &&
+    !entityType
+  ) {
+
+    entityType =
+      'REGION';
+
+  }
+
+
+  let confidence = 55;
+
+
+  if (
+    intent !== 'UNKNOWN'
+  ) {
+
+    confidence += 15;
+
+  }
+
+
+  if (metric) {
+
+    confidence += 10;
+
+  }
+
+
+  if (
+    division ||
+    region
+  ) {
+
+    confidence += 10;
+
+  }
+
+
+  if (
+    date.month ||
+    date.year
+  ) {
+
+    confidence += 5;
+
+  }
+
+
+  return {
+
+    rawQuery: rawQuery,
+
+    normalized: q,
+
+    intent: intent,
+
+    metric: metric,
+
+    division: division,
+
+    region: region,
+
+    entityType: entityType,
+
+    month: date.month,
+
+    monthName: date.monthName,
+
+    year: date.year,
+
+    limit: 8,
+
+    confidence:
+      Math.min(
+        confidence,
+        98
+      )
+
+  };
+
+}
+
+
+/* ============================================================
+ * 13. DATE VALUE
+ * ============================================================ */
+
+function BAGAS_date(
+  item
+) {
+
+  if (!item) {
+    return null;
+  }
+
+
+  const value =
+    item.Tanggal_Selesai ||
+    item.Tanggal_Mulai ||
+    item.Timestamp;
+
+
+  if (!value) {
+    return null;
+  }
+
+
+  const date =
+    new Date(value);
+
+
+  if (
+    isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return null;
+
+  }
+
+
+  return date;
+
+}
+
+
+/* ============================================================
+ * 14. STATUS
+ * ============================================================ */
+
+function BAGAS_status(
+  item
+) {
+
+  if (!item) {
+
+    return 'Unknown';
+
+  }
+
+
+  const raw =
+    String(
+      item.Status || ''
+    )
+    .toLowerCase()
+    .trim();
+
+
+  if (
+    item._sourceType === 'archive' ||
+    raw === 'done' ||
+    raw === 'completed' ||
+    raw === 'complete' ||
+    raw === 'selesai'
+  ) {
+
+    return 'Done';
+
+  }
+
+
+  try {
+
+    if (
+      typeof getLogicStatus === 'function'
+    ) {
+
+      const result =
+        getLogicStatus(
+          item
+        );
+
+
+      if (
+        result &&
+        result.label
+      ) {
+
+        return result.label;
+
+      }
+
+    }
+
+  } catch (e) {}
+
+
+  return 'On Progress';
+
+}
+
+
+/* ============================================================
+ * 15. PROGRESS
+ * ============================================================ */
+
+function BAGAS_progress(
+  value
+) {
+
+  const n =
+    parseFloat(
+      String(value || '')
+        .replace('%', '')
+        .replace(',', '.')
+    );
+
+
+  if (
+    isNaN(n)
+  ) {
+
+    return 0;
+
+  }
+
+
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      n
+    )
+  );
+
+}
+
+
+/* ============================================================
+ * 16. FILTER
+ * ============================================================ */
+
+function BAGAS_filterData(
+  data,
+  query
+) {
+
+  return data.filter(function(item) {
+
+    if (
+      query.division &&
+      !BAGAS_normalize(
+        item.Divisi
+      ).includes(
+        BAGAS_normalize(
+          query.division
+        )
+      )
+    ) {
+
+      return false;
+
+    }
+
+
+    if (
+      query.region &&
+      !BAGAS_normalize(
+        item.Wilayah_Kerja
+      ).includes(
+        BAGAS_normalize(
+          query.region
+        )
+      )
+    ) {
+
+      return false;
+
+    }
+
+
+    const date =
+      BAGAS_date(
+        item
+      );
+
+
+    if (
+      query.month !== null &&
+      query.month !== undefined
+    ) {
+
+      if (
+        !date ||
+        date.getMonth() + 1 !== query.month
+      ) {
+
+        return false;
+
+      }
+
+    }
+
+
+    if (
+      query.year !== null &&
+      query.year !== undefined
+    ) {
+
+      if (
+        !date ||
+        date.getFullYear() !== query.year
+      ) {
+
+        return false;
+
+      }
+
+    }
+
+
+    const status =
+      BAGAS_status(
+        item
+      );
+
+
+    if (
+      query.metric === 'OVERDUE' &&
+      status !== 'Overdue'
+    ) {
+
+      return false;
+
+    }
+
+
+    if (
+      query.metric === 'DONE' &&
+      status !== 'Done'
+    ) {
+
+      return false;
+
+    }
+
+
+    if (
+      query.metric === 'ACTION'
+    ) {
+
+      if (
+        status === 'Done'
+      ) {
+
+        return false;
+
+      }
+
+    }
+
+
+    return true;
+
+  });
+
+}
+
+
+/* ============================================================
+ * 17. ANALYTICS
+ * ============================================================ */
+
+function BAGAS_analyze(
+  data
+) {
+
+  const result = {
+
+    total: data.length,
+
+    done: 0,
+
+    overdue: 0,
+
+    progress: 0,
+
+    avgProgress: 0,
+
+    completionRate: 0,
+
+    divisions: {},
+
+    regions: {},
+
+    tasks: data
+
+  };
+
+
+  data.forEach(function(item) {
+
+    const status =
+      BAGAS_status(
+        item
+      );
+
+
+    const progress =
+      BAGAS_progress(
+        item.Progres
+      );
+
+
+    result.progress +=
+      progress;
+
+
+    if (
+      status === 'Done'
+    ) {
+
+      result.done++;
+
+    }
+    else if (
+      status === 'Overdue'
+    ) {
+
+      result.overdue++;
+
+    }
+
+
+    /* --------------------------------------------------------
+     * DIVISION
+     * -------------------------------------------------------- */
+
+    const division =
+      String(
+        item.Divisi ||
+        'Lainnya'
+      ).trim();
+
+
+    if (
+      !result.divisions[division]
+    ) {
+
+      result.divisions[division] = {
+
+        name: division,
+
+        total: 0,
+
+        done: 0,
+
+        overdue: 0,
+
+        progress: 0,
+
+        avgProgress: 0
+
+      };
+
+    }
+
+
+    const d =
+      result.divisions[division];
+
+
+    d.total++;
+
+    d.progress +=
+      progress;
+
+
+    if (
+      status === 'Done'
+    ) {
+
+      d.done++;
+
+    }
+    else if (
+      status === 'Overdue'
+    ) {
+
+      d.overdue++;
+
+    }
+
+
+    /* --------------------------------------------------------
+     * REGION
+     * -------------------------------------------------------- */
+
+    const region =
+      String(
+        item.Wilayah_Kerja ||
+        'Global'
+      ).trim();
+
+
+    if (
+      !result.regions[region]
+    ) {
+
+      result.regions[region] = {
+
+        name: region,
+
+        total: 0,
+
+        done: 0,
+
+        overdue: 0
+
+      };
+
+    }
+
+
+    const r =
+      result.regions[region];
+
+
+    r.total++;
+
+
+    if (
+      status === 'Done'
+    ) {
+
+      r.done++;
+
+    }
+    else if (
+      status === 'Overdue'
+    ) {
+
+      r.overdue++;
+
+    }
+
+  });
+
+
+  if (
+    result.total > 0
+  ) {
+
+    result.avgProgress =
+      Math.round(
+        result.progress /
+        result.total
+      );
+
+
+    result.completionRate =
+      Math.round(
+        (
+          result.done /
+          result.total
+        ) * 100
+      );
+
+  }
+
+
+  Object.keys(
+    result.divisions
+  ).forEach(function(key) {
+
+    const d =
+      result.divisions[key];
+
+
+    d.avgProgress =
+      d.total > 0
+        ? Math.round(
+            d.progress /
+            d.total
+          )
+        : 0;
+
+  });
+
+
+  return result;
+
+}
+
+
+/* ============================================================
+ * 18. ANSWER GENERATOR
+ * ============================================================ */
+
+function BAGAS_generateAnswer(
+  query,
+  analysis
+) {
+
+  const scope =
+    BAGAS_scope(
+      query
+    );
+
+
+  /* ----------------------------------------------------------
+   * COUNT
+   * ---------------------------------------------------------- */
+
+  if (
+    query.intent === 'COUNT'
+  ) {
+
+    if (
+      query.metric === 'OVERDUE'
+    ) {
+
+      return `
+        ${scope}
+        terdapat
+        <strong class="bagas-number-danger">
+          ${analysis.overdue}
+        </strong>
+        pekerjaan yang sedang
+        <strong>Overdue</strong>.
+      `;
+
+    }
+
+
+    if (
+      query.metric === 'DONE'
+    ) {
+
+      return `
+        ${scope}
+        terdapat
+        <strong class="bagas-number-success">
+          ${analysis.done}
+        </strong>
+        pekerjaan yang sudah selesai.
+      `;
+
+    }
+
+
+    return `
+      ${scope}
+      terdapat
+      <strong>
+        ${analysis.total}
+      </strong>
+      pekerjaan yang sesuai dengan kriteria Anda.
+    `;
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * PERCENTAGE
+   * ---------------------------------------------------------- */
+
+  if (
+    query.intent === 'PERCENTAGE'
+  ) {
+
+    return `
+      ${scope}
+      sebanyak
+      <strong class="bagas-number-primary">
+        ${analysis.completionRate}%
+      </strong>
+      pekerjaan telah selesai,
+      yaitu
+      <strong>
+        ${analysis.done}
+      </strong>
+      dari
+      <strong>
+        ${analysis.total}
+      </strong>
+      pekerjaan.
+    `;
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * PROGRESS
+   * ---------------------------------------------------------- */
+
+  if (
+    query.intent === 'PROGRESS'
+  ) {
+
+    return `
+      ${scope}
+      rata-rata progres berada pada
+      <strong class="bagas-number-info">
+        ${analysis.avgProgress}%
+      </strong>.
+      Terdapat
+      <strong>
+        ${analysis.done}
+      </strong>
+      pekerjaan selesai,
+      <strong>
+        ${analysis.total -
+          analysis.done -
+          analysis.overdue}
+      </strong>
+      masih berjalan,
+      dan
+      <strong class="bagas-number-danger">
+        ${analysis.overdue}
+      </strong>
+      overdue.
+    `;
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * STATUS
+   * ---------------------------------------------------------- */
+
+  if (
+    query.intent === 'STATUS'
+  ) {
+
+    return `
+      ${scope}
+      terdapat
+      <strong>
+        ${analysis.done}
+      </strong>
+      pekerjaan selesai,
+      <strong>
+        ${analysis.total -
+          analysis.done -
+          analysis.overdue}
+      </strong>
+      masih berjalan,
+      dan
+      <strong class="bagas-number-danger">
+        ${analysis.overdue}
+      </strong>
+      overdue.
+    `;
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * SUMMARY
+   * ---------------------------------------------------------- */
+
+  if (
+    query.intent === 'SUMMARY'
+  ) {
+
+    return `
+      ${scope}
+      terdapat
+      <strong>
+        ${analysis.total}
+      </strong>
+      pekerjaan.
+      Sebanyak
+      <strong class="bagas-number-success">
+        ${analysis.done}
+      </strong>
+      sudah selesai,
+      <strong>
+        ${analysis.total -
+          analysis.done -
+          analysis.overdue}
+      </strong>
+      masih berjalan,
+      dan
+      <strong class="bagas-number-danger">
+        ${analysis.overdue}
+      </strong>
+      overdue.
+      Rata-rata progres berada pada
+      <strong class="bagas-number-info">
+        ${analysis.avgProgress}%
+      </strong>.
+    `;
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * LIST
+   * ---------------------------------------------------------- */
+
+  if (
+    query.intent === 'LIST'
+  ) {
+
+    return `
+      Saya menemukan
+      <strong>
+        ${analysis.total}
+      </strong>
+      pekerjaan
+      ${BAGAS_scopeSuffix(query)}
+      yang sesuai dengan permintaan Anda.
+      Berikut data yang paling relevan.
+    `;
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * RANKING
+   * ---------------------------------------------------------- */
+
+  if (
+    query.intent === 'RANKING'
+  ) {
+
+    if (
+      query.entityType === 'REGION'
+    ) {
+
+      const regions =
+        Object.values(
+          analysis.regions
+        );
+
+
+      regions.sort(function(a, b) {
+
+        if (
+          query.metric === 'OVERDUE'
+        ) {
+
+          return b.overdue -
+            a.overdue;
+
         }
 
-        // ==========================================================
-        // STRUKTUR KALKULASI RINGKASAN EKSEKUTIF & ANALISIS DISTRIBUSI
-        // ==========================================================
-        const divDistribution = {};
-        const wilDistribution = {};
-        let totalProgressPctSum = 0;
+        return b.total -
+          a.total;
 
-        matches.forEach(item => {
-          let d = cleanXSS(item.Divisi || "Lainnya");
-          let w = cleanXSS(item.Wilayah_Kerja || "Global");
-          divDistribution[d] = (divDistribution[d] || 0) + 1;
-          wilDistribution[w] = (wilDistribution[w] || 0) + 1;
-          let pVal = parseInt((item.Progres || "0").toString().replace('%','')) || 0;
-          totalProgressPctSum += pVal;
-        });
+      });
 
-        const sortedDivs = Object.entries(divDistribution).sort((a,b) => b[1] - a[1]);
-        const sortedWils = Object.entries(wilDistribution).sort((a,b) => b[1] - a[1]);
 
-        const topDivName = sortedDivs.length > 0 ? sortedDivs[0][0] : "-";
-        const topDivCount = sortedDivs.length > 0 ? sortedDivs[0][1] : 0;
-        const avgProgress = matches.length > 0 ? Math.round(totalProgressPctSum / matches.length) : 0;
+      if (!regions.length) {
 
-        // RENDERING DAFTAR ITEMS RINCIAN
-        const displayLimit = 15;
-        const itemsToDisplay = matches.slice(0, displayLimit);
-
-        let itemsHtml = itemsToDisplay.map((item, idx) => {
-          let statObj = (item._sourceType === 'archive' || (item.Status || "").toLowerCase() === "done")
-            ? { label: "Completed", class: "status-done" }
-            : getLogicStatus(item);
-
-          let progVal = parseInt((item.Progres || "0").toString().replace('%','')) || 0;
-          let targetDateFormatted = formatToDdmmyy(item.Tanggal_Selesai || item.Timestamp);
-
-          return `
-            <div class="p-3 mb-2 rounded-3 border bg-white shadow-sm transition-all" style="border-left: 4px solid var(--royal) !important;">
-              <div class="d-flex justify-content-between align-items-start mb-1 gap-2">
-                <div class="fw-bold text-navy" style="font-size:0.9rem; line-height: 1.35;">
-                  <span class="text-slate me-1">${idx + 1}.</span> ${cleanXSS(item.Aktivitas)}
-                </div>
-                <span class="badge-status ${statObj.class} flex-shrink-0" style="font-size:0.65rem; padding: 3px 9px;">${statObj.label}</span>
-              </div>
-              
-              <div class="d-flex flex-wrap gap-2 align-items-center my-2 text-slate" style="font-size:0.75rem;">
-                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5"><i class="fas fa-building me-1"></i>${cleanXSS(item.Divisi || '-')}</span>
-                <span class="badge bg-light text-slate border px-2 py-0.5"><i class="fas fa-map-marker-alt me-1 text-danger"></i>${cleanXSS(item.Wilayah_Kerja || 'Global')}</span>
-                <span><i class="far fa-calendar-alt me-1"></i>Tenggat: <b>${targetDateFormatted}</b></span>
-                <span><i class="fas fa-tasks me-1"></i>Progres: <b>${progVal}%</b></span>
-              </div>
-
-              ${item.Tindak_Lanjut ? `
-                <div class="p-2 rounded bg-light border-start border-3 border-primary small text-navy mt-1" style="font-size:0.78rem;">
-                  <b>Rencana Aksi (Next Steps):</b> ${cleanXSS(item.Tindak_Lanjut)}
-                </div>
-              ` : ''}
-              ${item.Notes ? `
-                <div class="small text-slate mt-1" style="font-size:0.75rem;">
-                  <i>Catatan Strategis: ${cleanXSS(item.Notes)}</i>
-                </div>
-              ` : ''}
-            </div>
-          `;
-        }).join('');
-
-        let finalHtml = `
-          <div class="mb-3">
-            <div class="p-3 rounded-3 border ${statusBadgeColor} mb-3" style="background-color: var(--bs-body-bg);">
-              <h6 class="fw-bold mb-2 d-flex align-items-center gap-2">
-                <i class="fas fa-robot fs-5 text-primary"></i> ${humanTitle}
-              </h6>
-              <div class="small text-navy lh-base" style="font-size: 0.88rem;">
-                <div class="mb-2 text-primary fw-bold">
-                  <i class="fas fa-hand-wave me-1"></i> Halo! Saya BAGAS, siap membantu seluruh kebutuhan data Anda dalam aplikasi ini.
-                </div>
-                ${humanNarrative}
-              </div>
-            </div>
-
-            <!-- EXECUTIVE SUMMARY & ANALYSES BLOCK -->
-            <div class="p-3 rounded-3 border bg-white shadow-sm mb-3">
-              <h6 class="fw-bold text-navy mb-2 border-bottom pb-2" style="font-size:0.85rem;">
-                <i class="fas fa-chart-pie text-primary me-2"></i>RINGKASAN & ANALISIS DISTRIBUSI DATA
-              </h6>
-              
-              <!-- HIGHLIGHT METRICS -->
-              <div class="row g-2 mb-3 text-center">
-                <div class="col-4">
-                  <div class="p-2 rounded bg-light border">
-                    <div class="text-slate fw-bold" style="font-size:0.65rem;">TOTAL TASK</div>
-                    <div class="fw-800 text-navy fs-5">${matches.length}</div>
-                  </div>
-                </div>
-                <div class="col-4">
-                  <div class="p-2 rounded bg-light border">
-                    <div class="text-slate fw-bold" style="font-size:0.65rem;">KONTRIBUSI TERBANYAK</div>
-                    <div class="fw-800 text-primary fs-6 text-truncate" title="${topDivName}">${topDivName} (${topDivCount})</div>
-                  </div>
-                </div>
-                <div class="col-4">
-                  <div class="p-2 rounded bg-light border">
-                    <div class="text-slate fw-bold" style="font-size:0.65rem;">RATA-RATA PROGRES</div>
-                    <div class="fw-800 text-success fs-6">${avgProgress}%</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- SEBARAN PER DIVISI -->
-              <div class="mb-2">
-                <div class="text-slate fw-bold mb-1" style="font-size:0.72rem;"><i class="fas fa-building me-1"></i>Sebaran Pekerjaan Per Divisi:</div>
-                <div class="d-flex flex-wrap gap-1">
-                  ${sortedDivs.map(([d, c]) => `<span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:0.7rem;">${d}: <b>${c} task</b></span>`).join(' ')}
-                </div>
-              </div>
-
-              <!-- SEBARAN PER WILAYAH -->
-              <div>
-                <div class="text-slate fw-bold mb-1" style="font-size:0.72rem;"><i class="fas fa-map-marker-alt me-1"></i>Sebaran Pekerjaan Per Wilayah Kerja:</div>
-                <div class="d-flex flex-wrap gap-1">
-                  ${sortedWils.map(([w, c]) => `<span class="badge bg-light text-slate border" style="font-size:0.7rem;">${w}: <b>${c} task</b></span>`).join(' ')}
-                </div>
-              </div>
-            </div>
-
-            ${itemsHtml ? `
-              <div class="fw-bold text-navy small mb-2">
-                <i class="fas fa-list-ol text-primary me-1"></i> Rincian detail seluruh pekerjaan di atas:
-              </div>
-            ` : ''}
-          </div>
-
-          ${itemsHtml ? `
-            <div class="rincian-list-box" style="max-height: 360px; overflow-y: auto; padding-right: 4px;">
-              ${itemsHtml}
-            </div>
-          ` : ''}
-
-          ${matches.length > displayLimit ? `
-            <div class="text-center text-slate small mt-2">
-              <i>* Menampilkan ${displayLimit} dari ${matches.length} rincian pekerjaan terdaftar.</i>
-            </div>
-          ` : ''}
+        return `
+          Belum terdapat data wilayah
+          yang cukup untuk membuat peringkat.
         `;
 
-        container.innerHTML = finalHtml;
-      }, 300);
+      }
+
+
+      const top =
+        regions[0];
+
+
+      return `
+        Berdasarkan data yang tersedia,
+        <strong>
+          ${BAGAS_escape(top.name)}
+        </strong>
+        menjadi wilayah yang paling menonjol
+        berdasarkan kriteria pertanyaan Anda,
+        dengan
+        <strong>
+          ${
+            query.metric === 'OVERDUE'
+              ? top.overdue
+              : top.total
+          }
+        </strong>
+        pekerjaan.
+      `;
+
     }
+
+
+    const divisions =
+      Object.values(
+        analysis.divisions
+      );
+
+
+    divisions.sort(function(a, b) {
+
+      if (
+        query.metric === 'OVERDUE'
+      ) {
+
+        return b.overdue -
+          a.overdue;
+
+      }
+
+
+      if (
+        query.metric === 'DONE'
+      ) {
+
+        return b.done -
+          a.done;
+
+      }
+
+
+      if (
+        query.metric === 'PROGRESS'
+      ) {
+
+        return b.avgProgress -
+          a.avgProgress;
+
+      }
+
+
+      return b.total -
+        a.total;
+
+    });
+
+
+    if (!divisions.length) {
+
+      return `
+        Belum terdapat data divisi
+        yang cukup untuk membuat peringkat.
+      `;
+
+    }
+
+
+    const top =
+      divisions[0];
+
+
+    if (
+      query.metric === 'OVERDUE'
+    ) {
+
+      return `
+        Berdasarkan jumlah overdue,
+        <strong>
+          Divisi ${BAGAS_escape(top.name)}
+        </strong>
+        memiliki pekerjaan overdue paling banyak,
+        yaitu
+        <strong class="bagas-number-danger">
+          ${top.overdue}
+        </strong>
+        pekerjaan.
+      `;
+
+    }
+
+
+    if (
+      query.metric === 'DONE'
+    ) {
+
+      return `
+        <strong>
+          Divisi ${BAGAS_escape(top.name)}
+        </strong>
+        memiliki pekerjaan selesai paling banyak,
+        yaitu
+        <strong class="bagas-number-success">
+          ${top.done}
+        </strong>
+        pekerjaan.
+      `;
+
+    }
+
+
+    if (
+      query.metric === 'PROGRESS'
+    ) {
+
+      return `
+        <strong>
+          Divisi ${BAGAS_escape(top.name)}
+        </strong>
+        memiliki rata-rata progres tertinggi,
+        yaitu
+        <strong class="bagas-number-info">
+          ${top.avgProgress}%
+        </strong>.
+      `;
+
+    }
+
+
+    return `
+      <strong>
+        Divisi ${BAGAS_escape(top.name)}
+      </strong>
+      memiliki jumlah pekerjaan terbanyak,
+      yaitu
+      <strong>
+        ${top.total}
+      </strong>
+      pekerjaan.
+    `;
+
+  }
+
+
+  return '';
+
+}
+
+
+/* ============================================================
+ * 19. SCOPE
+ * ============================================================ */
+
+function BAGAS_scope(
+  query
+) {
+
+  let text =
+    'Dalam data';
+
+
+  if (
+    query.division
+  ) {
+
+    text +=
+      ` Divisi <strong>${BAGAS_escape(query.division)}</strong>`;
+
+  }
+
+
+  if (
+    query.region
+  ) {
+
+    text +=
+      ` wilayah <strong>${BAGAS_escape(query.region)}</strong>`;
+
+  }
+
+
+  if (
+    query.monthName
+  ) {
+
+    text +=
+      ` bulan <strong>${query.monthName}</strong>`;
+
+  }
+
+
+  if (
+    query.year
+  ) {
+
+    text +=
+      ` tahun <strong>${query.year}</strong>`;
+
+  }
+
+
+  return text;
+
+}
+
+
+function BAGAS_scopeSuffix(
+  query
+) {
+
+  let text = '';
+
+
+  if (
+    query.division
+  ) {
+
+    text +=
+      ` di Divisi <strong>${BAGAS_escape(query.division)}</strong>`;
+
+  }
+
+
+  if (
+    query.region
+  ) {
+
+    text +=
+      ` di wilayah <strong>${BAGAS_escape(query.region)}</strong>`;
+
+  }
+
+
+  if (
+    query.monthName
+  ) {
+
+    text +=
+      ` pada bulan <strong>${query.monthName}</strong>`;
+
+  }
+
+
+  if (
+    query.year
+  ) {
+
+    text +=
+      ` tahun ${query.year}`;
+
+  }
+
+
+  return text;
+
+}
+
+
+/* ============================================================
+ * 20. DATA ANSWER UI
+ * ============================================================ */
+
+function BAGAS_renderDataAnswer(
+  container,
+  query,
+  analysis,
+  answer,
+  filtered
+) {
+
+  let icon =
+    'fa-chart-pie';
+
+  let title =
+    'Ringkasan Kondisi';
+
+  let accent =
+    'primary';
+
+
+  if (
+    query.intent === 'COUNT'
+  ) {
+
+    icon =
+      'fa-calculator';
+
+    title =
+      'Jawaban Data';
+
+  }
+
+
+  if (
+    query.intent === 'LIST'
+  ) {
+
+    icon =
+      'fa-list-check';
+
+    title =
+      'Rincian Pekerjaan';
+
+  }
+
+
+  if (
+    query.intent === 'RANKING'
+  ) {
+
+    icon =
+      'fa-ranking-star';
+
+    title =
+      'Peringkat Data';
+
+    accent =
+      'warning';
+
+  }
+
+
+  if (
+    query.metric === 'OVERDUE'
+  ) {
+
+    accent =
+      'danger';
+
+  }
+
+
+  if (
+    query.metric === 'DONE'
+  ) {
+
+    accent =
+      'success';
+
+  }
+
+
+  const cards =
+    BAGAS_metricCards(
+      analysis
+    );
+
+
+  let detail = '';
+
+
+  if (
+    query.intent === 'LIST'
+  ) {
+
+    detail =
+      BAGAS_taskList(
+        filtered,
+        query
+      );
+
+  }
+
+
+  if (
+    query.intent === 'RANKING'
+  ) {
+
+    detail =
+      BAGAS_ranking(
+        analysis,
+        query
+      );
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="bagas-answer-shell">
+
+      <div class="bagas-answer-header">
+
+        <div class="bagas-answer-icon bagas-${accent}">
+
+          <i class="fas ${icon}"></i>
+
+        </div>
+
+
+        <div class="bagas-answer-heading">
+
+          <div class="bagas-eyebrow">
+            ANALISIS DATA
+          </div>
+
+          <div class="bagas-answer-title">
+            ${title}
+          </div>
+
+        </div>
+
+
+        <div class="bagas-confidence">
+          ${query.confidence}%
+        </div>
+
+      </div>
+
+
+      <div class="bagas-answer-text">
+
+        ${answer}
+
+      </div>
+
+
+      ${cards}
+
+
+      ${detail}
+
+
+      <div class="bagas-footer">
+
+        <span>
+
+          <i class="fas fa-robot"></i>
+
+          BAGAS memahami pertanyaan sebagai:
+
+          <strong>
+            ${BAGAS_intentLabel(query.intent)}
+          </strong>
+
+        </span>
+
+
+        ${
+          query.metric
+            ? `
+              <span class="bagas-footer-dot">•</span>
+
+              <span>
+                ${BAGAS_metricLabel(query.metric)}
+              </span>
+            `
+            : ''
+        }
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+ * 21. METRIC CARDS
+ * ============================================================ */
+
+function BAGAS_metricCards(
+  analysis
+) {
+
+  return `
+
+    <div class="bagas-metrics">
+
+      <div class="bagas-metric-card">
+
+        <div class="bagas-metric-label">
+          Total
+        </div>
+
+        <div class="bagas-metric-value primary">
+          ${analysis.total}
+        </div>
+
+      </div>
+
+
+      <div class="bagas-metric-card">
+
+        <div class="bagas-metric-label">
+          Overdue
+        </div>
+
+        <div class="bagas-metric-value danger">
+          ${analysis.overdue}
+        </div>
+
+      </div>
+
+
+      <div class="bagas-metric-card">
+
+        <div class="bagas-metric-label">
+          Selesai
+        </div>
+
+        <div class="bagas-metric-value success">
+          ${analysis.done}
+        </div>
+
+      </div>
+
+
+      <div class="bagas-metric-card">
+
+        <div class="bagas-metric-label">
+          Progres
+        </div>
+
+        <div class="bagas-metric-value info">
+          ${analysis.avgProgress}%
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+ * 22. TASK LIST
+ * ============================================================ */
+
+function BAGAS_taskList(
+  data,
+  query
+) {
+
+  if (!data.length) {
+
+    return `
+
+      <div class="bagas-empty">
+
+        <div class="bagas-empty-icon">
+
+          <i class="fas fa-magnifying-glass"></i>
+
+        </div>
+
+        <div class="bagas-empty-title">
+          Data tidak ditemukan
+        </div>
+
+        <div class="bagas-empty-text">
+
+          Tidak ada pekerjaan yang sesuai
+          dengan kriteria pertanyaan Anda.
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+  const sorted =
+    [...data].sort(function(a, b) {
+
+      const priority = {
+
+        Overdue: 1,
+
+        'On Progress': 2,
+
+        'In Progress': 2,
+
+        Done: 3
+
+      };
+
+
+      const pa =
+        priority[BAGAS_status(a)] || 99;
+
+      const pb =
+        priority[BAGAS_status(b)] || 99;
+
+
+      return pa - pb;
+
+    });
+
+
+  const html =
+    sorted
+      .slice(
+        0,
+        query.limit
+      )
+      .map(function(item, index) {
+
+        return BAGAS_taskCard(
+          item,
+          index
+        );
+
+      })
+      .join('');
+
+
+  return `
+
+    <div class="bagas-task-list">
+
+      ${html}
+
+    </div>
+
+    ${
+      data.length > query.limit
+        ? `
+          <div class="bagas-more">
+            Menampilkan ${query.limit}
+            dari ${data.length} pekerjaan.
+          </div>
+        `
+        : ''
+    }
+
+  `;
+
+}
+
+
+/* ============================================================
+ * 23. TASK CARD
+ * ============================================================ */
+
+function BAGAS_taskCard(
+  item,
+  index
+) {
+
+  const status =
+    BAGAS_status(
+      item
+    );
+
+
+  let statusClass =
+    'progress';
+
+
+  if (
+    status === 'Overdue'
+  ) {
+
+    statusClass =
+      'danger';
+
+  }
+  else if (
+    status === 'Done'
+  ) {
+
+    statusClass =
+      'success';
+
+  }
+
+
+  const progress =
+    BAGAS_progress(
+      item.Progres
+    );
+
+
+  let date =
+    '-';
+
+
+  try {
+
+    if (
+      typeof formatToDdmmyy === 'function'
+    ) {
+
+      date =
+        formatToDdmmyy(
+          item.Tanggal_Selesai
+        );
+
+    }
+    else {
+
+      const d =
+        BAGAS_date(
+          item
+        );
+
+      if (d) {
+
+        date =
+          d.toLocaleDateString(
+            'id-ID',
+            {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+            }
+          );
+
+      }
+
+    }
+
+  } catch (e) {}
+
+
+  return `
+
+    <div class="bagas-task-card">
+
+      <div class="bagas-task-top">
+
+        <div class="bagas-task-index">
+          ${index + 1}
+        </div>
+
+
+        <div class="bagas-task-title">
+
+          ${BAGAS_escape(
+            item.Aktivitas ||
+            'Aktivitas tidak tersedia'
+          )}
+
+        </div>
+
+
+        <span class="
+          bagas-status
+          ${statusClass}
+        ">
+
+          ${BAGAS_escape(status)}
+
+        </span>
+
+      </div>
+
+
+      <div class="bagas-task-meta">
+
+        <span>
+
+          <i class="fas fa-building"></i>
+
+          ${BAGAS_escape(
+            item.Divisi ||
+            'Tidak tersedia'
+          )}
+
+        </span>
+
+
+        <span>
+
+          <i class="fas fa-location-dot"></i>
+
+          ${BAGAS_escape(
+            item.Wilayah_Kerja ||
+            'Global'
+          )}
+
+        </span>
+
+
+        <span>
+
+          <i class="fas fa-calendar"></i>
+
+          Target ${BAGAS_escape(date)}
+
+        </span>
+
+      </div>
+
+
+      <div class="bagas-progress-row">
+
+        <span>
+          Progres
+        </span>
+
+
+        <div class="bagas-progress">
+
+          <div
+            class="bagas-progress-bar ${statusClass}"
+            style="
+              width:${progress}%;
+            "
+          ></div>
+
+        </div>
+
+
+        <strong>
+          ${progress}%
+        </strong>
+
+      </div>
+
+
+      ${
+        item.Tindak_Lanjut
+          ? `
+            <div class="bagas-action">
+
+              <div class="bagas-action-label">
+
+                <i class="fas fa-arrow-right"></i>
+
+                Rencana Aksi
+
+              </div>
+
+              <div class="bagas-action-text">
+
+                ${BAGAS_escape(
+                  item.Tindak_Lanjut
+                )}
+
+              </div>
+
+            </div>
+          `
+          : ''
+      }
+
+
+      ${
+        item.Evaluasi
+          ? `
+            <div class="bagas-issue">
+
+              <div class="bagas-issue-label">
+
+                <i class="fas fa-triangle-exclamation"></i>
+
+                Kendala / Evaluasi
+
+              </div>
+
+              <div class="bagas-issue-text">
+
+                ${BAGAS_escape(
+                  item.Evaluasi
+                )}
+
+              </div>
+
+            </div>
+          `
+          : ''
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+ * 24. RANKING
+ * ============================================================ */
+
+function BAGAS_ranking(
+  analysis,
+  query
+) {
+
+  if (
+    query.entityType === 'REGION'
+  ) {
+
+    const list =
+      Object.values(
+        analysis.regions
+      );
+
+
+    list.sort(function(a, b) {
+
+      return query.metric === 'OVERDUE'
+        ? b.overdue - a.overdue
+        : b.total - a.total;
+
+    });
+
+
+    return BAGAS_rankingCards(
+      list,
+      'REGION'
+    );
+
+  }
+
+
+  const list =
+    Object.values(
+      analysis.divisions
+    );
+
+
+  list.sort(function(a, b) {
+
+    if (
+      query.metric === 'OVERDUE'
+    ) {
+
+      return b.overdue -
+        a.overdue;
+
+    }
+
+
+    if (
+      query.metric === 'DONE'
+    ) {
+
+      return b.done -
+        a.done;
+
+    }
+
+
+    if (
+      query.metric === 'PROGRESS'
+    ) {
+
+      return b.avgProgress -
+        a.avgProgress;
+
+    }
+
+
+    return b.total -
+      a.total;
+
+  });
+
+
+  return BAGAS_rankingCards(
+    list,
+    'DIVISION'
+  );
+
+}
+
+
+function BAGAS_rankingCards(
+  list,
+  type
+) {
+
+  if (!list.length) {
+
+    return `
+      <div class="bagas-empty">
+        Belum terdapat data yang cukup
+        untuk membuat peringkat.
+      </div>
+    `;
+
+  }
+
+
+  return `
+
+    <div class="bagas-ranking">
+
+      ${list.slice(0, 8).map(
+        function(item, index) {
+
+          return `
+
+            <div class="bagas-ranking-item">
+
+              <div class="bagas-ranking-number">
+                ${index + 1}
+              </div>
+
+
+              <div class="bagas-ranking-main">
+
+                <div class="bagas-ranking-name">
+
+                  ${
+                    type === 'DIVISION'
+                      ? 'Divisi '
+                      : ''
+                  }
+
+                  ${BAGAS_escape(
+                    item.name
+                  )}
+
+                </div>
+
+
+                <div class="bagas-ranking-meta">
+
+                  ${item.total} pekerjaan
+
+                  &nbsp;•&nbsp;
+
+                  ${item.overdue} overdue
+
+                  ${
+                    type === 'DIVISION'
+                      ? `
+                        &nbsp;•&nbsp;
+                        ${item.avgProgress}%
+                        progres
+                      `
+                      : ''
+                  }
+
+                </div>
+
+              </div>
+
+
+              <div class="
+                bagas-ranking-value
+                ${
+                  item.overdue > 0
+                    ? 'danger'
+                    : 'success'
+                }
+              ">
+
+                ${item.overdue}
+
+                <small>
+                  overdue
+                </small>
+
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      ).join('')}
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+ * 25. CONVERSATIONAL RESPONSE
+ * ============================================================ */
+
+function BAGAS_renderConversation(
+  container,
+  type,
+  rawQuery
+) {
+
+  BAGAS_ensureStyles();
+
+
+  let title = '';
+  let message = '';
+  let icon = 'fa-robot';
+  let accent = 'primary';
+  let suggestions = false;
+
+
+  /* ----------------------------------------------------------
+   * GREETING
+   * ---------------------------------------------------------- */
+
+  if (
+    type === 'GREETING'
+  ) {
+
+    title =
+      BAGAS_timeGreeting();
+
+
+    message =
+      `Senang bertemu dengan Anda. ` +
+      `Saya <strong>BAGAS</strong>, ` +
+      `Asisten Data & Informasi. ` +
+      `Saya siap membantu Anda memahami ` +
+      `<strong>data dan laporan dalam aplikasi ini</strong>.`;
+
+
+    icon =
+      'fa-sun';
+
+    suggestions =
+      true;
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * THANKS
+   * ---------------------------------------------------------- */
+
+  else if (
+    type === 'THANKS'
+  ) {
+
+    title =
+      'Sama-sama 😊';
+
+
+    message =
+      `Senang bisa membantu. ` +
+      `Jika Anda membutuhkan analisis ` +
+      `data lainnya, silakan tanyakan ` +
+      `kapan saja.`;
+
+
+    icon =
+      'fa-circle-check';
+
+    accent =
+      'success';
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * FAREWELL
+   * ---------------------------------------------------------- */
+
+  else if (
+    type === 'FAREWELL'
+  ) {
+
+    title =
+      'Sampai jumpa 👋';
+
+
+    message =
+      `Terima kasih sudah menggunakan BAGAS. ` +
+      `Saya siap membantu kembali ketika ` +
+      `Anda membutuhkan informasi dari data aplikasi.`;
+
+
+    icon =
+      'fa-hand';
+
+    accent =
+      'secondary';
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * IDENTITY
+   * ---------------------------------------------------------- */
+
+  else if (
+    type === 'IDENTITY'
+  ) {
+
+    title =
+      'Saya BAGAS 👋';
+
+
+    message =
+      `Saya adalah <strong>Asisten Data & Informasi</strong> ` +
+      `di aplikasi ini. ` +
+      `Saya membantu Anda menemukan informasi ` +
+      `dari data yang tersedia, seperti ` +
+      `<strong>pekerjaan, progres, overdue, status, ` +
+      `divisi, wilayah, target, kendala, ` +
+      `dan tindak lanjut</strong>.`;
+
+
+    icon =
+      'fa-robot';
+
+    suggestions =
+      true;
+
+  }
+
+
+  /* ----------------------------------------------------------
+   * GENERAL
+   * ---------------------------------------------------------- */
+
+  else {
+
+    title =
+      'Senang bisa membantu 😊';
+
+
+    message =
+      `BAGAS siap membantu Anda. ` +
+      `Silakan tanyakan informasi yang ingin ` +
+      `Anda lihat dari data aplikasi, atau ` +
+      `gunakan salah satu contoh pertanyaan di bawah.`;
+
+
+    icon =
+      'fa-comments';
+
+    suggestions =
+      true;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="
+      bagas-conversation-card
+      ${accent}
+    ">
+
+      <div class="bagas-conversation-icon">
+
+        <i class="fas ${icon}"></i>
+
+      </div>
+
+
+      <div class="bagas-conversation-body">
+
+        <div class="bagas-eyebrow">
+          ASISTEN DATA & INFORMASI
+        </div>
+
+
+        <div class="bagas-conversation-title">
+
+          ${title}
+
+        </div>
+
+
+        <div class="bagas-conversation-message">
+
+          ${message}
+
+        </div>
+
+
+        ${
+          suggestions
+            ? `
+              <div class="bagas-suggestion-title">
+
+                Anda dapat mencoba:
+
+              </div>
+
+              <div class="bagas-suggestions">
+
+                ${BAGAS_suggestions()}
+
+              </div>
+            `
+            : ''
+        }
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+ * 26. TIME GREETING
+ * ============================================================ */
+
+function BAGAS_timeGreeting() {
+
+  const hour =
+    new Date().getHours();
+
+
+  if (
+    hour >= 4 &&
+    hour < 11
+  ) {
+
+    return 'Selamat pagi 👋';
+
+  }
+
+
+  if (
+    hour >= 11 &&
+    hour < 15
+  ) {
+
+    return 'Selamat siang 👋';
+
+  }
+
+
+  if (
+    hour >= 15 &&
+    hour < 18
+  ) {
+
+    return 'Selamat sore 👋';
+
+  }
+
+
+  return 'Selamat malam 👋';
+
+}
+
+
+/* ============================================================
+ * 27. SUGGESTIONS
+ * ============================================================ */
+
+function BAGAS_suggestions() {
+
+  const items = [
+
+    {
+      icon: 'fa-circle-exclamation',
+      color: 'danger',
+      text:
+        'Berapa pekerjaan overdue saat ini?'
+    },
+
+    {
+      icon: 'fa-chart-line',
+      color: 'primary',
+      text:
+        'Bagaimana progres pekerjaan saat ini?'
+    },
+
+    {
+      icon: 'fa-ranking-star',
+      color: 'warning',
+      text:
+        'Divisi mana yang paling banyak overdue?'
+    },
+
+    {
+      icon: 'fa-list-check',
+      color: 'success',
+      text:
+        'Tampilkan pekerjaan yang harus segera ditindaklanjuti'
+    }
+
+  ];
+
+
+  return items.map(function(item) {
+
+    const encoded =
+      BAGAS_encode(
+        item.text
+      );
+
+
+    return `
+
+      <button
+        type="button"
+        class="bagas-suggestion"
+        onclick="
+          BAGAS_runSuggestion(
+            '${encoded}'
+          )
+        "
+      >
+
+        <span class="
+          bagas-suggestion-icon
+          ${item.color}
+        ">
+
+          <i class="fas ${item.icon}"></i>
+
+        </span>
+
+
+        <span>
+          ${BAGAS_escape(item.text)}
+        </span>
+
+
+        <i class="
+          fas fa-arrow-right
+          bagas-suggestion-arrow
+        "></i>
+
+      </button>
+
+    `;
+
+  }).join('');
+
+}
+
+
+/* ============================================================
+ * 28. OUT OF SCOPE
+ * ============================================================ */
+
+function BAGAS_renderOutOfScope(
+  container,
+  rawQuery
+) {
+
+  container.innerHTML = `
+
+    <div class="bagas-conversation-card warning">
+
+      <div class="bagas-conversation-icon">
+
+        <i class="fas fa-compass"></i>
+
+      </div>
+
+
+      <div class="bagas-conversation-body">
+
+        <div class="bagas-eyebrow">
+          BAGAS
+        </div>
+
+
+        <div class="bagas-conversation-title">
+
+          Saya bantu arahkan ya.
+
+        </div>
+
+
+        <div class="bagas-conversation-message">
+
+          Pertanyaan
+          <strong>
+            "${BAGAS_escape(rawQuery)}"
+          </strong>
+          berada di luar ruang lingkup informasi
+          yang dapat saya analisis dalam aplikasi ini.
+
+          <br><br>
+
+          Saya fokus membantu Anda memahami
+          <strong>
+            pekerjaan, status, progres, overdue,
+            divisi, wilayah, target, kendala,
+            dan tindak lanjut
+          </strong>
+          berdasarkan data yang tersedia.
+
+        </div>
+
+
+        <div class="bagas-suggestion-title">
+
+          Mungkin yang Anda cari adalah:
+
+        </div>
+
+
+        <div class="bagas-suggestions">
+
+          ${BAGAS_suggestions()}
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+ * 29. CLARIFICATION
+ * ============================================================ */
+
+function BAGAS_renderClarification(
+  container,
+  rawQuery
+) {
+
+  const examples = [
+
+    'Bagaimana kondisi pekerjaan saat ini?',
+
+    'Berapa pekerjaan overdue saat ini?',
+
+    'Bagaimana progres pekerjaan saat ini?',
+
+    'Divisi mana yang paling banyak overdue?'
+
+  ];
+
+
+  container.innerHTML = `
+
+    <div class="bagas-conversation-card info">
+
+      <div class="bagas-conversation-icon">
+
+        <i class="fas fa-comments"></i>
+
+      </div>
+
+
+      <div class="bagas-conversation-body">
+
+        <div class="bagas-eyebrow">
+          KLARIFIKASI
+        </div>
+
+
+        <div class="bagas-conversation-title">
+
+          Saya ingin memastikan maksud Anda.
+
+        </div>
+
+
+        <div class="bagas-conversation-message">
+
+          Saya menemukan konteks yang mungkin
+          berkaitan dengan data aplikasi, tetapi
+          belum cukup jelas informasi apa yang
+          ingin Anda lihat.
+
+          <br><br>
+
+          Silakan pilih salah satu contoh berikut,
+          atau tuliskan pertanyaan Anda dengan
+          sedikit lebih spesifik.
+
+        </div>
+
+
+        <div class="bagas-suggestions">
+
+          ${
+            examples.map(function(text) {
+
+              const encoded =
+                BAGAS_encode(text);
+
+
+              return `
+
+                <button
+                  type="button"
+                  class="bagas-suggestion"
+                  onclick="
+                    BAGAS_runSuggestion(
+                      '${encoded}'
+                    )
+                  "
+                >
+
+                  <span class="bagas-suggestion-icon primary">
+
+                    <i class="fas fa-arrow-right"></i>
+
+                  </span>
+
+                  <span>
+                    ${BAGAS_escape(text)}
+                  </span>
+
+                  <i class="
+                    fas fa-chevron-right
+                    bagas-suggestion-arrow
+                  "></i>
+
+                </button>
+
+              `;
+
+            }).join('')
+          }
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+ * 30. WELCOME
+ * ============================================================ */
+
+function BAGAS_renderWelcome(
+  container
+) {
+
+  BAGAS_renderConversation(
+    container,
+    'GREETING',
+    ''
+  );
+
+}
+
+
+/* ============================================================
+ * 31. ERROR
+ * ============================================================ */
+
+function BAGAS_renderError(
+  container
+) {
+
+  container.innerHTML = `
+
+    <div class="bagas-conversation-card danger">
+
+      <div class="bagas-conversation-icon">
+
+        <i class="fas fa-triangle-exclamation"></i>
+
+      </div>
+
+
+      <div class="bagas-conversation-body">
+
+        <div class="bagas-conversation-title">
+
+          Saya belum berhasil memprosesnya.
+
+        </div>
+
+
+        <div class="bagas-conversation-message">
+
+          Silakan coba tanyakan kembali dengan
+          kalimat yang berkaitan dengan data
+          pekerjaan, progres, overdue, divisi,
+          wilayah, atau tindak lanjut.
+
+          <br><br>
+
+          <strong>
+            Tidak perlu menggunakan format khusus.
+          </strong>
+          Anda dapat bertanya dengan bahasa
+          sehari-hari.
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+ * 32. LABELS
+ * ============================================================ */
+
+function BAGAS_intentLabel(
+  intent
+) {
+
+  const map = {
+
+    COUNT:
+      'menghitung jumlah',
+
+    PERCENTAGE:
+      'menghitung persentase',
+
+    LIST:
+      'menampilkan rincian',
+
+    RANKING:
+      'membuat peringkat',
+
+    PROGRESS:
+      'menganalisis progres',
+
+    STATUS:
+      'menganalisis status',
+
+    SUMMARY:
+      'memberikan ringkasan'
+
+  };
+
+
+  return (
+    map[intent] ||
+    'menganalisis data'
+  );
+
+}
+
+
+function BAGAS_metricLabel(
+  metric
+) {
+
+  const map = {
+
+    OVERDUE:
+      'Overdue',
+
+    DONE:
+      'Selesai',
+
+    PROGRESS:
+      'Progres',
+
+    ACTION:
+      'Tindak Lanjut',
+
+    ISSUE:
+      'Kendala',
+
+    COMPLETION_RATE:
+      'Persentase Selesai'
+
+  };
+
+
+  return (
+    map[metric] ||
+    ''
+  );
+
+}
+
+
+/* ============================================================
+ * 33. ENTERPRISE UI STYLE
+ *
+ * Automatically injected once.
+ * ============================================================ */
+
+function BAGAS_ensureStyles() {
+
+  if (
+    document.getElementById(
+      'bagasEnterpriseStyles'
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const style =
+    document.createElement(
+      'style'
+    );
+
+
+  style.id =
+    'bagasEnterpriseStyles';
+
+
+  style.textContent = `
+
+    /* ========================================================
+     * BAGAS ENTERPRISE UI
+     * ======================================================== */
+
+    .bagas-answer-shell,
+    .bagas-conversation-card {
+
+      position: relative;
+
+      overflow: hidden;
+
+      border: 1px solid
+        rgba(15, 23, 42, .10);
+
+      border-radius: 22px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #ffffff 0%,
+          #f8fafc 100%
+        );
+
+      box-shadow:
+        0 12px 30px
+        rgba(15, 23, 42, .08);
+
+      padding: 22px;
+
+    }
+
+
+    .bagas-answer-shell::before,
+    .bagas-conversation-card::before {
+
+      content: "";
+
+      position: absolute;
+
+      left: 0;
+
+      top: 0;
+
+      bottom: 0;
+
+      width: 4px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #2563eb,
+          #06b6d4
+        );
+
+    }
+
+
+    .bagas-answer-header {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 13px;
+
+      margin-bottom: 17px;
+
+    }
+
+
+    .bagas-answer-icon {
+
+      width: 44px;
+
+      height: 44px;
+
+      min-width: 44px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      border-radius: 14px;
+
+      background: #eff6ff;
+
+      color: #2563eb;
+
+      font-size: 18px;
+
+    }
+
+
+    .bagas-answer-icon.warning {
+
+      background: #fff7ed;
+
+      color: #f59e0b;
+
+    }
+
+
+    .bagas-answer-icon.danger {
+
+      background: #fef2f2;
+
+      color: #ef4444;
+
+    }
+
+
+    .bagas-answer-icon.success {
+
+      background: #ecfdf5;
+
+      color: #10b981;
+
+    }
+
+
+    .bagas-answer-icon.info {
+
+      background: #ecfeff;
+
+      color: #0891b2;
+
+    }
+
+
+    .bagas-answer-heading {
+
+      flex: 1;
+
+    }
+
+
+    .bagas-eyebrow {
+
+      font-size: 10px;
+
+      font-weight: 800;
+
+      letter-spacing: 1.1px;
+
+      color: #64748b;
+
+      margin-bottom: 2px;
+
+    }
+
+
+    .bagas-answer-title {
+
+      color: #0f172a;
+
+      font-size: 18px;
+
+      font-weight: 750;
+
+      line-height: 1.2;
+
+    }
+
+
+    .bagas-confidence {
+
+      padding: 6px 10px;
+
+      border-radius: 999px;
+
+      background: #f1f5f9;
+
+      color: #64748b;
+
+      font-size: 11px;
+
+      font-weight: 700;
+
+    }
+
+
+    .bagas-answer-text {
+
+      color: #334155;
+
+      font-size: 14px;
+
+      line-height: 1.75;
+
+      margin-bottom: 18px;
+
+    }
+
+
+    .bagas-number-primary {
+
+      color: #2563eb;
+
+    }
+
+
+    .bagas-number-danger {
+
+      color: #dc2626;
+
+    }
+
+
+    .bagas-number-success {
+
+      color: #059669;
+
+    }
+
+
+    .bagas-number-info {
+
+      color: #0891b2;
+
+    }
+
+
+    /* ========================================================
+     * METRICS
+     * ======================================================== */
+
+    .bagas-metrics {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+      gap: 10px;
+
+      margin: 10px 0 18px;
+
+    }
+
+
+    .bagas-metric-card {
+
+      padding: 15px;
+
+      border: 1px solid
+        rgba(15, 23, 42, .08);
+
+      border-radius: 15px;
+
+      background: #ffffff;
+
+      text-align: center;
+
+      transition:
+        transform .18s ease,
+        box-shadow .18s ease;
+
+    }
+
+
+    .bagas-metric-card:hover {
+
+      transform:
+        translateY(-2px);
+
+      box-shadow:
+        0 8px 20px
+        rgba(15, 23, 42, .08);
+
+    }
+
+
+    .bagas-metric-label {
+
+      color: #64748b;
+
+      font-size: 11px;
+
+      font-weight: 600;
+
+      margin-bottom: 4px;
+
+    }
+
+
+    .bagas-metric-value {
+
+      font-size: 25px;
+
+      font-weight: 800;
+
+    }
+
+
+    .bagas-metric-value.primary {
+
+      color: #2563eb;
+
+    }
+
+
+    .bagas-metric-value.danger {
+
+      color: #dc2626;
+
+    }
+
+
+    .bagas-metric-value.success {
+
+      color: #059669;
+
+    }
+
+
+    .bagas-metric-value.info {
+
+      color: #0891b2;
+
+    }
+
+
+    /* ========================================================
+     * TASK
+     * ======================================================== */
+
+    .bagas-task-list {
+
+      max-height: 330px;
+
+      overflow-y: auto;
+
+      padding-right: 3px;
+
+    }
+
+
+    .bagas-task-card {
+
+      border: 1px solid
+        rgba(15, 23, 42, .08);
+
+      border-radius: 15px;
+
+      padding: 15px;
+
+      margin-bottom: 9px;
+
+      background: #fff;
+
+      transition:
+        box-shadow .18s ease,
+        transform .18s ease;
+
+    }
+
+
+    .bagas-task-card:hover {
+
+      transform:
+        translateY(-1px);
+
+      box-shadow:
+        0 7px 18px
+        rgba(15, 23, 42, .07);
+
+    }
+
+
+    .bagas-task-top {
+
+      display: flex;
+
+      align-items: flex-start;
+
+      gap: 9px;
+
+    }
+
+
+    .bagas-task-index {
+
+      width: 25px;
+
+      height: 25px;
+
+      min-width: 25px;
+
+      border-radius: 8px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      background: #eff6ff;
+
+      color: #2563eb;
+
+      font-size: 11px;
+
+      font-weight: 800;
+
+    }
+
+
+    .bagas-task-title {
+
+      flex: 1;
+
+      color: #0f172a;
+
+      font-size: 13px;
+
+      font-weight: 700;
+
+      line-height: 1.45;
+
+    }
+
+
+    .bagas-status {
+
+      padding: 5px 8px;
+
+      border-radius: 999px;
+
+      font-size: 9px;
+
+      font-weight: 800;
+
+      white-space: nowrap;
+
+    }
+
+
+    .bagas-status.danger {
+
+      background: #fef2f2;
+
+      color: #dc2626;
+
+    }
+
+
+    .bagas-status.success {
+
+      background: #ecfdf5;
+
+      color: #059669;
+
+    }
+
+
+    .bagas-status.progress {
+
+      background: #eff6ff;
+
+      color: #2563eb;
+
+    }
+
+
+    .bagas-task-meta {
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 9px;
+
+      margin:
+        10px 0;
+
+      color: #64748b;
+
+      font-size: 10px;
+
+    }
+
+
+    .bagas-task-meta span {
+
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 4px;
+
+    }
+
+
+    .bagas-task-meta i {
+
+      color: #94a3b8;
+
+    }
+
+
+    .bagas-progress-row {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 8px;
+
+      color: #64748b;
+
+      font-size: 10px;
+
+    }
+
+
+    .bagas-progress {
+
+      flex: 1;
+
+      height: 5px;
+
+      border-radius: 999px;
+
+      background: #e2e8f0;
+
+      overflow: hidden;
+
+    }
+
+
+    .bagas-progress-bar {
+
+      height: 100%;
+
+      border-radius: 999px;
+
+      background: #2563eb;
+
+    }
+
+
+    .bagas-progress-bar.danger {
+
+      background: #ef4444;
+
+    }
+
+
+    .bagas-progress-bar.success {
+
+      background: #10b981;
+
+    }
+
+
+    .bagas-action {
+
+      margin-top: 10px;
+
+      padding: 9px 11px;
+
+      border-radius: 10px;
+
+      background: #f8fafc;
+
+      border-left: 3px solid #2563eb;
+
+    }
+
+
+    .bagas-action-label {
+
+      color: #2563eb;
+
+      font-size: 10px;
+
+      font-weight: 800;
+
+      margin-bottom: 3px;
+
+    }
+
+
+    .bagas-action-text {
+
+      color: #475569;
+
+      font-size: 11px;
+
+      line-height: 1.5;
+
+    }
+
+
+    .bagas-issue {
+
+      margin-top: 7px;
+
+      padding: 9px 11px;
+
+      border-radius: 10px;
+
+      background: #fff7ed;
+
+      border-left: 3px solid #f59e0b;
+
+    }
+
+
+    .bagas-issue-label {
+
+      color: #c2410c;
+
+      font-size: 10px;
+
+      font-weight: 800;
+
+      margin-bottom: 3px;
+
+    }
+
+
+    .bagas-issue-text {
+
+      color: #57534e;
+
+      font-size: 11px;
+
+      line-height: 1.5;
+
+    }
+
+
+    /* ========================================================
+     * RANKING
+     * ======================================================== */
+
+    .bagas-ranking {
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 7px;
+
+    }
+
+
+    .bagas-ranking-item {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 11px;
+
+      padding: 11px 12px;
+
+      border: 1px solid
+        rgba(15, 23, 42, .07);
+
+      border-radius: 12px;
+
+      background: #fff;
+
+    }
+
+
+    .bagas-ranking-number {
+
+      width: 29px;
+
+      height: 29px;
+
+      min-width: 29px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      border-radius: 9px;
+
+      background: #f1f5f9;
+
+      color: #475569;
+
+      font-size: 11px;
+
+      font-weight: 800;
+
+    }
+
+
+    .bagas-ranking-main {
+
+      flex: 1;
+
+      min-width: 0;
+
+    }
+
+
+    .bagas-ranking-name {
+
+      color: #0f172a;
+
+      font-size: 12px;
+
+      font-weight: 750;
+
+    }
+
+
+    .bagas-ranking-meta {
+
+      margin-top: 2px;
+
+      color: #94a3b8;
+
+      font-size: 10px;
+
+    }
+
+
+    .bagas-ranking-value {
+
+      text-align: right;
+
+      font-size: 15px;
+
+      font-weight: 800;
+
+    }
+
+
+    .bagas-ranking-value small {
+
+      display: block;
+
+      font-size: 8px;
+
+      font-weight: 600;
+
+    }
+
+
+    .bagas-ranking-value.danger {
+
+      color: #dc2626;
+
+    }
+
+
+    .bagas-ranking-value.success {
+
+      color: #059669;
+
+    }
+
+
+    /* ========================================================
+     * CONVERSATION
+     * ======================================================== */
+
+    .bagas-conversation-card {
+
+      display: flex;
+
+      align-items: flex-start;
+
+      gap: 16px;
+
+    }
+
+
+    .bagas-conversation-card.warning::before {
+
+      background:
+        linear-gradient(
+          180deg,
+          #f59e0b,
+          #f97316
+        );
+
+    }
+
+
+    .bagas-conversation-card.success::before {
+
+      background:
+        linear-gradient(
+          180deg,
+          #10b981,
+          #059669
+        );
+
+    }
+
+
+    .bagas-conversation-card.info::before {
+
+      background:
+        linear-gradient(
+          180deg,
+          #2563eb,
+          #0891b2
+        );
+
+    }
+
+
+    .bagas-conversation-card.danger::before {
+
+      background:
+        linear-gradient(
+          180deg,
+          #ef4444,
+          #dc2626
+        );
+
+    }
+
+
+    .bagas-conversation-icon {
+
+      width: 48px;
+
+      height: 48px;
+
+      min-width: 48px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      border-radius: 15px;
+
+      background: #eff6ff;
+
+      color: #2563eb;
+
+      font-size: 18px;
+
+    }
+
+
+    .bagas-conversation-card.warning
+    .bagas-conversation-icon {
+
+      background: #fff7ed;
+
+      color: #f59e0b;
+
+    }
+
+
+    .bagas-conversation-card.success
+    .bagas-conversation-icon {
+
+      background: #ecfdf5;
+
+      color: #059669;
+
+    }
+
+
+    .bagas-conversation-card.info
+    .bagas-conversation-icon {
+
+      background: #eff6ff;
+
+      color: #2563eb;
+
+    }
+
+
+    .bagas-conversation-card.danger
+    .bagas-conversation-icon {
+
+      background: #fef2f2;
+
+      color: #dc2626;
+
+    }
+
+
+    .bagas-conversation-body {
+
+      flex: 1;
+
+      min-width: 0;
+
+    }
+
+
+    .bagas-conversation-title {
+
+      color: #0f172a;
+
+      font-size: 19px;
+
+      font-weight: 800;
+
+      margin-bottom: 7px;
+
+    }
+
+
+    .bagas-conversation-message {
+
+      color: #475569;
+
+      font-size: 13px;
+
+      line-height: 1.75;
+
+    }
+
+
+    .bagas-suggestion-title {
+
+      color: #334155;
+
+      font-size: 11px;
+
+      font-weight: 800;
+
+      margin:
+        17px 0 8px;
+
+    }
+
+
+    .bagas-suggestions {
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 7px;
+
+    }
+
+
+    .bagas-suggestion {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 10px;
+
+      width: 100%;
+
+      border: 1px solid
+        rgba(15, 23, 42, .08);
+
+      border-radius: 11px;
+
+      padding: 9px 11px;
+
+      background: #fff;
+
+      color: #334155;
+
+      text-align: left;
+
+      font-size: 11px;
+
+      transition:
+        all .18s ease;
+
+    }
+
+
+    .bagas-suggestion:hover {
+
+      transform:
+        translateX(3px);
+
+      border-color:
+        rgba(37, 99, 235, .25);
+
+      background: #f8fbff;
+
+      box-shadow:
+        0 5px 14px
+        rgba(15, 23, 42, .06);
+
+    }
+
+
+    .bagas-suggestion-icon {
+
+      width: 28px;
+
+      height: 28px;
+
+      min-width: 28px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      border-radius: 8px;
+
+      font-size: 11px;
+
+    }
+
+
+    .bagas-suggestion-icon.primary {
+
+      background: #eff6ff;
+
+      color: #2563eb;
+
+    }
+
+
+    .bagas-suggestion-icon.danger {
+
+      background: #fef2f2;
+
+      color: #dc2626;
+
+    }
+
+
+    .bagas-suggestion-icon.warning {
+
+      background: #fffbeb;
+
+      color: #d97706;
+
+    }
+
+
+    .bagas-suggestion-icon.success {
+
+      background: #ecfdf5;
+
+      color: #059669;
+
+    }
+
+
+    .bagas-suggestion-arrow {
+
+      margin-left: auto;
+
+      color: #cbd5e1;
+
+      font-size: 9px;
+
+    }
+
+
+    /* ========================================================
+     * LOADING
+     * ======================================================== */
+
+    .bagas-loading {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 12px;
+
+      padding: 18px;
+
+      border: 1px solid
+        rgba(37, 99, 235, .12);
+
+      border-radius: 15px;
+
+      background: #f8fbff;
+
+    }
+
+
+    .bagas-loading-icon {
+
+      width: 38px;
+
+      height: 38px;
+
+      min-width: 38px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      border-radius: 12px;
+
+      background: #2563eb;
+
+      color: #fff;
+
+      animation:
+        bagasPulse 1.4s infinite;
+
+    }
+
+
+    .bagas-loading-title {
+
+      color: #0f172a;
+
+      font-size: 12px;
+
+      font-weight: 750;
+
+    }
+
+
+    .bagas-loading-text {
+
+      margin-top: 2px;
+
+      color: #64748b;
+
+      font-size: 10px;
+
+    }
+
+
+    @keyframes bagasPulse {
+
+      0%, 100% {
+
+        transform: scale(1);
+
+        opacity: 1;
+
+      }
+
+      50% {
+
+        transform: scale(.94);
+
+        opacity: .72;
+
+      }
+
+    }
+
+
+    /* ========================================================
+     * FOOTER
+     * ======================================================== */
+
+    .bagas-footer {
+
+      display: flex;
+
+      align-items: center;
+
+      flex-wrap: wrap;
+
+      gap: 6px;
+
+      padding-top: 13px;
+
+      margin-top: 17px;
+
+      border-top:
+        1px solid
+        rgba(15, 23, 42, .07);
+
+      color: #94a3b8;
+
+      font-size: 9px;
+
+    }
+
+
+    .bagas-footer i {
+
+      color: #64748b;
+
+      margin-right: 3px;
+
+    }
+
+
+    .bagas-footer strong {
+
+      color: #64748b;
+
+    }
+
+
+    .bagas-footer-dot {
+
+      color: #cbd5e1;
+
+    }
+
+
+    .bagas-empty {
+
+      padding: 30px 15px;
+
+      text-align: center;
+
+      color: #64748b;
+
+    }
+
+
+    .bagas-empty-icon {
+
+      width: 42px;
+
+      height: 42px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      margin: 0 auto 8px;
+
+      border-radius: 13px;
+
+      background: #f1f5f9;
+
+      color: #94a3b8;
+
+    }
+
+
+    .bagas-empty-title {
+
+      color: #334155;
+
+      font-size: 12px;
+
+      font-weight: 750;
+
+    }
+
+
+    .bagas-empty-text {
+
+      margin-top: 4px;
+
+      font-size: 10px;
+
+    }
+
+
+    .bagas-more {
+
+      padding: 8px;
+
+      text-align: center;
+
+      color: #94a3b8;
+
+      font-size: 9px;
+
+    }
+
+
+    /* ========================================================
+     * MOBILE
+     * ======================================================== */
+
+    @media (
+      max-width: 650px
+    ) {
+
+      .bagas-metrics {
+
+        grid-template-columns:
+          repeat(2, 1fr);
+
+      }
+
+
+      .bagas-answer-shell,
+      .bagas-conversation-card {
+
+        padding: 16px;
+
+        border-radius: 17px;
+
+      }
+
+
+      .bagas-task-meta {
+
+        flex-direction: column;
+
+        gap: 5px;
+
+      }
+
+
+      .bagas-confidence {
+
+        display: none;
+
+      }
+
+
+      .bagas-conversation-title {
+
+        font-size: 17px;
+
+      }
+
+    }
+
+  `;
+
+
+  document.head.appendChild(
+    style
+  );
+
+}
+
+
+/* ============================================================
+ * 34. END BAGAS v4.0
+ * ============================================================ */
 </script>
 </body>
 </html>
