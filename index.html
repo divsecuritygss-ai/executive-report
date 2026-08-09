@@ -2271,13 +2271,25 @@
       GoogleScriptRunInstance.prototype.requestPasswordReset = function(query) { this._executePost('requestPasswordReset', [query]); };
       GoogleScriptRunInstance.prototype.logoutUser = function(user, devInfo) { this._executePost('logoutUser', [user, devInfo]); };
 
-      // Hubungkan ke Core Object Window dengan Akses Rantai Baru
+      // Hubungkan ke Core Object Window dengan Akses Rantai Baru (Enhanced PWA Compatibility Engine)
       window.google = {
         script: {
-          run: {
-            withSuccessHandler: function(successCb) { return new GoogleScriptRunInstance(successCb, null); },
-            withFailureHandler: function(failureCb) { return new GoogleScriptRunInstance(null, failureCb); }
-          }
+          run: new Proxy(new GoogleScriptRunInstance(null, null), {
+            get: function(target, prop) {
+              if (prop === 'withSuccessHandler') {
+                return function(successCb) { return new GoogleScriptRunInstance(successCb, null); };
+              }
+              if (prop === 'withFailureHandler') {
+                return function(failureCb) { return new GoogleScriptRunInstance(null, failureCb); };
+              }
+              if (typeof target[prop] === 'function') {
+                return function(...args) {
+                  return target[prop](...args);
+                };
+              }
+              return function() {};
+            }
+          })
         }
       };
     }
@@ -2612,13 +2624,30 @@
       if (currentUser) {
         const activeUser = currentUser.username || currentUser.nama || 'User';
         const devInfo = typeof getDeviceIdentifier === 'function' ? getDeviceIdentifier() : 'Browser Client';
-        // Kirim log audit logout ke server
-        google.script.run.logoutUser(activeUser, devInfo);
+        
+        // Kirim log audit logout ke server secara aman via PWA Bridge Chain
+        try {
+          if (typeof google !== 'undefined' && google.script && google.script.run) {
+            google.script.run
+              .withSuccessHandler(function() {})
+              .withFailureHandler(function() {})
+              .logoutUser(activeUser, devInfo);
+          }
+        } catch (e) {
+          console.warn('[Logout Engine] Non-critical audit log dispatch warning:', e);
+        }
       }
+      
+      // Bersihkan Sesi Lokal & Reset Tampilan UI
       localStorage.removeItem('executive_auth'); 
       currentUser = null;
-      document.getElementById('loginBtn').classList.remove('d-none');
-      document.getElementById('userBadge').classList.add('d-none');
+      
+      const loginBtn = document.getElementById('loginBtn');
+      const userBadge = document.getElementById('userBadge');
+      
+      if (loginBtn) loginBtn.classList.remove('d-none');
+      if (userBadge) userBadge.classList.add('d-none');
+      
       switchView('home');
       refreshData();
     }
@@ -4063,7 +4092,13 @@
       tujuhHariLalu.setDate(tujuhHariLalu.getDate() - 7);
       tujuhHariLalu.setHours(0,0,0,0);
 
-      let recentUpdates = dataToRender.filter(item => {
+      // GABUNGKAN DATA AKTIF DAN DATA ARSIP (REKAP KEGIATAN) UNTUK TRACKING LENGKAP
+      const combinedSource = [...(dataToRender || []), ...(typeof archiveData !== 'undefined' ? archiveData : [])];
+
+      // HILANGKAN DUPLIKASI DATA BERDASARKAN ID
+      const uniqueSource = Array.from(new Map(combinedSource.map(item => [item.ID, item])).values());
+
+      let recentUpdates = uniqueSource.filter(item => {
         if (!item.Timestamp) return false;
         return new Date(item.Timestamp) >= tujuhHariLalu;
       }).sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
@@ -4079,19 +4114,29 @@
       recentUpdates.forEach(item => {
         const progNum = parseInt((item.Progres || "0").toString().replace('%', '')) || 0;
         const tgl = item.Timestamp ? formatToDdmmyy(item.Timestamp) : '-';
+        const isDone = (item.Status || '').toString().trim().toLowerCase() === 'done' || progNum === 100;
+        
+        const statusBadge = isDone 
+          ? `<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 me-1"><i class="fas fa-check-double me-1"></i>Selesai (Archived)</span>`
+          : `<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 me-1">Progres: ${progNum}%</span>`;
+
+        const cleanAktivitas = typeof cleanXSS === 'function' ? cleanXSS(item.Aktivitas) : item.Aktivitas;
+        const cleanTindakLanjut = typeof cleanXSS === 'function' ? cleanXSS(item.Tindak_Lanjut || '-') : (item.Tindak_Lanjut || '-');
+        const cleanDivisi = typeof cleanXSS === 'function' ? cleanXSS(item.Divisi) : item.Divisi;
+
         htmlList += `
         <div class="list-group-item p-4 border-bottom hover-bg-light transition-all">
           <div class="d-flex justify-content-between align-items-start mb-2">
-            <div class="fw-bold text-navy pe-3" style="font-size: 0.95rem;">${item.Aktivitas}</div>
+            <div class="fw-bold text-navy pe-3" style="font-size: 0.95rem;">${cleanAktivitas}</div>
             <div class="badge border" style="background-color: #F8FAFC; color: #475569; font-weight: 600;"><i class="fas fa-clock me-1"></i> ${tgl}</div>
           </div>
-          <div class="bg-light p-3 rounded-3 mt-3 mb-3 border" style="border-left: 3px solid var(--emerald) !important;">
-            <div class="small fw-bold text-emerald mb-1">Rencana Aksi (Next):</div>
-            <div class="small text-navy">${item.Tindak_Lanjut || '-'}</div>
+          <div class="bg-light p-3 rounded-3 mt-3 mb-3 border" style="border-left: 3px solid ${isDone ? 'var(--emerald)' : 'var(--royal)'} !important;">
+            <div class="small fw-bold ${isDone ? 'text-emerald' : 'text-primary'} mb-1">Rencana Aksi (Next):</div>
+            <div class="small text-navy">${cleanTindakLanjut}</div>
           </div>
           <div class="d-flex justify-content-between align-items-center small">
-            <div class="text-slate fw-bold"><i class="fas fa-building me-1"></i> ${item.Divisi}</div>
-            <div class="fw-bold text-royal bg-primary-subtle px-2 py-1 rounded">Progres: ${progNum}%</div>
+            <div class="text-slate fw-bold"><i class="fas fa-building me-1"></i> ${cleanDivisi}</div>
+            <div>${statusBadge}</div>
           </div>
         </div>`;
       });
