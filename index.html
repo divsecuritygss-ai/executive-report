@@ -2380,22 +2380,19 @@
 
     function switchEntityContext(entity) {
       if (currentEntity === entity) return;
-      
-      // 1. SIMPAN STATE ENTITAS BARU
       currentEntity = entity;
       localStorage.setItem('executive_entity', currentEntity);
       
-      // 2. RESET MEMORI LOKAL INSTAN: Cegah kebocoran data EMP ke KEI
+      // ISOLASI MEMORI INSTAN: Bersihkan seluruh data entitas terdahulu (Termasuk archiveData)
       allData = [];
       archiveData = [];
       auditActiveDivisions = [];
       
-      // 3. CLEANUP DOM VISUAL
+      // RESET TAMPILAN DOM VISUAL SEMENTARA
       applyGlobalFilters();
       renderTableSkeletons();
       updateEntityPillUI();
       
-      // 4. UNDUH DATA AKTUAL SEGAR DARI SERVER
       refreshData();
     }
 
@@ -2929,8 +2926,6 @@
     };
 
     function refreshCharts(dataToChart) {
-      if(!allData.length && !dataToChart.length) return;
-      
       const isDark = document.body.getAttribute('data-theme') === 'dark';
       const themeTextColor = isDark ? '#CBD5E1' : '#1E293B';
       const themeGridColor = isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9';
