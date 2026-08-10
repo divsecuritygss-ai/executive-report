@@ -2265,13 +2265,26 @@
 
       GoogleScriptRunInstance.prototype._executeGet = function(action, ent) {
         const entityParam = ent || (typeof currentEntity !== 'undefined' ? currentEntity : 'EMP');
-        fetch(`${GAS_SECURITY_API_URL}?action=${action}&entity=${entityParam}`, { redirect: 'follow' })
+        // ANTI-CACHE ENGINE: Tambahkan timestamp unik _t untuk memaksa browser & Vercel bypass cache
+        const cacheBuster = Date.now();
+        const targetUrl = `${GAS_SECURITY_API_URL}?action=${action}&entity=${entityParam}&_t=${cacheBuster}`;
+
+        fetch(targetUrl, { 
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          redirect: 'follow' 
+        })
           .then(async res => {
             const text = await res.text();
             try {
               return JSON.parse(text);
             } catch (e) {
-              console.error(`[GAS-API-ERROR] Action '${action}' mengembalikan HTML/Bukan JSON. Kemungkinan akses Web App belum 'Anyone'. Content preview:`, text.substring(0, 150));
+              console.error(`[GAS-API-ERROR] Action '${action}' mengembalikan HTML/Bukan JSON. Preview:`, text.substring(0, 150));
               throw new Error(`Server GAS mengembalikan respon non-JSON untuk action '${action}'.`);
             }
           })
@@ -2379,10 +2392,14 @@
       currentEntity = entity;
       localStorage.setItem('executive_entity', currentEntity);
       
-      // ISOLASI STATE MEMORI LOKAL: Bersihkan data entitas sebelumnya agar tidak terjadi kebocoran silang
+      // 1. ISOLASI STATE MEMORI LOKAL: Bersihkan data entitas sebelumnya secara instan
       allData = [];
       archiveData = [];
       auditActiveDivisions = [];
+      
+      // 2. RESETS VISUAL / DOM STATE INSTAN: Bersihkan tampilan tabel & chart sebelum data baru tiba
+      applyGlobalFilters();
+      renderTableSkeletons();
       
       updateEntityPillUI();
       refreshData();
