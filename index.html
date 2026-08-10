@@ -2488,6 +2488,14 @@
     }
     
     function endLoading() { 
+      if (telemetryInterval) {
+        clearInterval(telemetryInterval);
+        telemetryInterval = null;
+      }
+      if (globalLoadingTimeout) {
+        clearTimeout(globalLoadingTimeout);
+        globalLoadingTimeout = null;
+      }
       document.getElementById('loadingOverlay').style.display = 'none'; 
     }
 
@@ -2565,14 +2573,23 @@
       // RECORD VISITOR HIT AUTOMATICALLY ON PAGE LOAD
       recordVisitorHit();
 
-      // PWA SERVICE WORKER REGISTRATION & AUTO-UPDATE CHECK (ROBUST SCOPE)
+      // PWA SERVICE WORKER REGISTRATION ENGINE (SMART ORIGIN DETECTION)
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js', { scope: '/' })
-          .then(reg => {
-            console.log('[PWA Engine] Service Worker registered successfully with scope:', reg.scope);
-            reg.update();
-          })
-          .catch(err => console.error('[PWA Engine] Service Worker registration failed:', err));
+        const currentHost = window.location.hostname || '';
+        const isGoogleSandbox = currentHost.includes('googleusercontent.com') || currentHost.includes('script.google.com');
+
+        if (isGoogleSandbox) {
+          // Bypassed pada domain Google Apps Script untuk mencegah request 404 ke server Google
+          console.log('[PWA Engine] Running inside Google Apps Script sandbox. Service Worker fetch bypassed for clean console.');
+        } else {
+          // Dieksekusi normal pada domain Vercel / Custom Domain PWA
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(reg => {
+              console.log('[PWA Engine] Service Worker registered successfully on host:', currentHost, 'with scope:', reg.scope);
+              reg.update();
+            })
+            .catch(err => console.warn('[PWA Engine] Service Worker registration notice:', err));
+        }
       }
     };
 
@@ -3523,6 +3540,9 @@
     // GLOBAL VARIABLE UNTUK 60FPS SMOOTH AUTO-ROLLING ENGINE
     let tickerAnimationFrame = null;
     let isTickerPaused = false;
+    let isUserScrolling = false;
+    let userScrollTimeout = null;
+    let tickerAccumulatedScroll = 0; // Akumulator desimal melayang untuk menjamin pergerakan sub-pixel 60 FPS
 
     function startAutoRollingTicker() {
       const ticker = document.getElementById('verticalTickerBody');
@@ -3530,31 +3550,71 @@
 
       stopAutoRollingTicker();
 
-      if (ticker.scrollHeight <= ticker.clientHeight) return;
+      // INJEKSI PENTING 1: Paksa scrollBehavior menjadi 'auto' agar requestAnimationFrame tidak di-throttled oleh CSS smooth scrolling
+      ticker.style.scrollBehavior = 'auto';
+      ticker.style.overflowY = 'auto';
 
-      // Event Listeners Jeda Interaktif saat Hover / Touch
-      ticker.onmouseenter = () => { isTickerPaused = true; };
-      ticker.onmouseleave = () => { isTickerPaused = false; };
-      ticker.ontouchstart = () => { isTickerPaused = true; };
-      ticker.ontouchend = () => { isTickerPaused = false; };
+      // Pengukuran Layout berbasis Post-Paint (Ganda requestAnimationFrame)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const currentTicker = document.getElementById('verticalTickerBody');
+          if (!currentTicker) return;
 
-      let lastTime = performance.now();
-      const speedPixelsPerSecond = 22; // Kecepatan gulir ultra-halus 22px/detik
+          const singleSetHeight = parseFloat(currentTicker.dataset.singleSetHeight || 0);
 
-      function step(currentTime) {
-        const delta = (currentTime - lastTime) / 1000;
-        lastTime = currentTime;
-
-        if (!isTickerPaused && ticker) {
-          ticker.scrollTop += speedPixelsPerSecond * delta;
-          if (ticker.scrollTop + ticker.clientHeight >= ticker.scrollHeight - 2) {
-            ticker.scrollTop = 0; // Seamless reset kembali ke atas
+          // Jika konten tidak dapat di-scroll atau tinggi belum terukur, lakukan retry aman
+          if (currentTicker.scrollHeight <= currentTicker.clientHeight || singleSetHeight <= 0) {
+            setTimeout(() => {
+              startAutoRollingTicker();
+            }, 300);
+            return;
           }
-        }
-        tickerAnimationFrame = requestAnimationFrame(step);
-      }
 
-      tickerAnimationFrame = requestAnimationFrame(step);
+          // 1. Event Listeners Hover (Jeda Otomatis saat Mouse Diarahkan untuk Klik Detail)
+          currentTicker.onmouseenter = () => { isTickerPaused = true; };
+          currentTicker.onmouseleave = () => { isTickerPaused = false; };
+          currentTicker.ontouchstart = () => { isTickerPaused = true; };
+          currentTicker.ontouchend = () => { isTickerPaused = false; };
+
+          // 2. Event Listener Mouse Wheel (Dukungan Scroll Manual tanpa Bentrokan)
+          currentTicker.onwheel = () => {
+            isUserScrolling = true;
+            tickerAccumulatedScroll = currentTicker.scrollTop;
+            if (userScrollTimeout) clearTimeout(userScrollTimeout);
+            userScrollTimeout = setTimeout(() => {
+              isUserScrolling = false;
+              tickerAccumulatedScroll = currentTicker.scrollTop;
+            }, 1200); // Resume auto-rolling 1.2 detik setelah mouse wheel berhenti
+          };
+
+          let lastTime = performance.now();
+          const speedPixelsPerSecond = 22; // Kecepatan gulir 22px/detik
+          tickerAccumulatedScroll = currentTicker.scrollTop;
+
+          function step(currentTime) {
+            const delta = (currentTime - lastTime) / 1000;
+            lastTime = currentTime;
+
+            if (!isTickerPaused && !isUserScrolling && currentTicker) {
+              tickerAccumulatedScroll += speedPixelsPerSecond * delta;
+
+              // Mathematical Seamless Reset: Reset offset tanpa lompatan visual (0ms Snap)
+              if (tickerAccumulatedScroll >= singleSetHeight) {
+                tickerAccumulatedScroll -= singleSetHeight;
+              }
+
+              currentTicker.scrollTop = tickerAccumulatedScroll;
+            } else if (currentTicker) {
+              // Sinkronisasi akumulator jika user melakukan navigasi manual
+              tickerAccumulatedScroll = currentTicker.scrollTop;
+            }
+
+            tickerAnimationFrame = requestAnimationFrame(step);
+          }
+
+          tickerAnimationFrame = requestAnimationFrame(step);
+        });
+      });
     }
 
     function stopAutoRollingTicker() {
@@ -3562,7 +3622,13 @@
         cancelAnimationFrame(tickerAnimationFrame);
         tickerAnimationFrame = null;
       }
+      if (userScrollTimeout) {
+        clearTimeout(userScrollTimeout);
+        userScrollTimeout = null;
+      }
       isTickerPaused = false;
+      isUserScrolling = false;
+      tickerAccumulatedScroll = 0;
     }
 
     function renderOverdueAlertCenter(dataToProcess) {
@@ -3662,13 +3728,6 @@
 
         const sortedUpDivs = Object.keys(upDivGroup).sort((a,b) => upDivGroup[b].length - upDivGroup[a].length);
 
-        cardsHtml += `
-          <div class="d-flex align-items-center gap-2 mt-2 mb-3 px-1">
-            <span class="badge bg-warning text-dark fw-bold rounded-circle p-1"><i class="fas fa-history fs-6"></i></span>
-            <span class="fw-bold text-navy small text-uppercase" style="letter-spacing:0.5px; font-size:0.73rem;">Radar Potensi Overdue (1 Bulan Ke Depan)</span>
-          </div>
-        `;
-
         sortedUpDivs.forEach(div => {
           const items = upDivGroup[div];
           const wilSet = new Set();
@@ -3720,11 +3779,28 @@
         `;
       }
 
-      tickerContainer.innerHTML = cardsHtml;
+      // POST-PAINT MEASUREMENT & ADAPTIVE MULTI-BUFFER CLONING ENGINE
+      if (overdueItems.length > 0 || upcomingItems.length > 0) {
+        // Render 1 set kartu awal untuk pengukuran Post-Paint presisi
+        tickerContainer.innerHTML = cardsHtml;
 
-      setTimeout(() => {
-        startAutoRollingTicker();
-      }, 300);
+        requestAnimationFrame(() => {
+          const singleSetHeight = tickerContainer.scrollHeight;
+          tickerContainer.dataset.singleSetHeight = singleSetHeight;
+
+          let multiBufferHtml = cardsHtml;
+          // Gandakan konten hingga tinggi total scroll minimal 2.5x dari tinggi wadah
+          while (tickerContainer.scrollHeight < tickerContainer.clientHeight * 2.5 || tickerContainer.childElementCount < 6) {
+            multiBufferHtml += cardsHtml;
+            tickerContainer.innerHTML = multiBufferHtml;
+          }
+
+          startAutoRollingTicker();
+        });
+      } else {
+        tickerContainer.innerHTML = cardsHtml;
+        delete tickerContainer.dataset.singleSetHeight;
+      }
     }
 
     function getLogicStatus(item) {
@@ -3754,7 +3830,7 @@
       let htmlAuth = "";
       let htmlMobile = "";
 
-      if(dataToRender.length === 0){
+      if (dataToRender.length === 0) {
           htmlPublic = `<tr><td colspan="6" class="text-center py-5 text-slate"><i class="fas fa-inbox fa-3x mb-3 opacity-25"></i><br>Tidak ada data yang ditemukan.</td></tr>`;
       }
 
@@ -3762,7 +3838,15 @@
         const progNum = parseInt((item.Progres || "0").toString().replace('%', '')) || 0;
         const statusObj = getLogicStatus(item);
         const formattedDate = formatToDdmmyy(item.Tanggal_Selesai);
-        const wilayahBadge = item.Wilayah_Kerja ? `<span class="badge px-2 py-1 ms-1" style="font-size: 0.6rem; background-color: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700;">${item.Wilayah_Kerja}</span>` : '';
+
+        const cleanAktivitasStr = cleanXSS(item.Aktivitas);
+        const cleanDivisiStr = cleanXSS(item.Divisi);
+        const cleanWilayahStr = cleanXSS(item.Wilayah_Kerja || '');
+        const cleanNotesStr = cleanXSS(item.Notes || '-');
+        const cleanEvaluasiStr = cleanXSS(item.Evaluasi || '-');
+        const cleanTindakLanjutStr = cleanXSS(item.Tindak_Lanjut || '-');
+
+        const wilayahBadge = cleanWilayahStr ? `<span class="badge px-2 py-1 ms-1" style="font-size: 0.6rem; background-color: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700;">${cleanWilayahStr}</span>` : '';
 
         let progressBarColor = 'linear-gradient(90deg, #F59E0B, #FBBF24)'; 
         if (statusObj.label === 'Done') {
@@ -3774,8 +3858,8 @@
         htmlPublic += `
           <tr>
             <td class="ps-4 py-4">
-              <div class="fw-bold text-navy mb-2" style="font-size: 0.95rem; line-height: 1.4;">${item.Aktivitas}</div>
-              <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1" style="font-size: 0.6rem;">${item.Divisi}</span>
+              <div class="fw-bold text-navy mb-2" style="font-size: 0.95rem; line-height: 1.4;">${cleanAktivitasStr}</div>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1" style="font-size: 0.6rem;">${cleanDivisiStr}</span>
               ${wilayahBadge}
             </td>
             <td class="py-4">
@@ -3790,24 +3874,24 @@
             <td class="text-center py-4 align-middle">
                 <span class="fw-bold text-navy" style="font-size: 0.95rem;">${formattedDate}</span>
             </td>
-            <td class="py-4"><div class="small text-slate" style="line-height: 1.5;">${item.Notes || '-'}</div></td>
-            <td class="py-4"><div class="small text-slate" style="line-height: 1.5; font-style: italic;">${item.Evaluasi || '-'}</div></td>
+            <td class="py-4"><div class="small text-slate" style="line-height: 1.5;">${cleanNotesStr}</div></td>
+            <td class="py-4"><div class="small text-slate" style="line-height: 1.5; font-style: italic;">${cleanEvaluasiStr}</div></td>
             <td class="pe-4 py-4">
                 <div class="bg-primary-subtle p-3 rounded-3" style="border-left: 3px solid var(--royal);">
                     <div class="small fw-bold text-royal mb-1">NEXT STEPS:</div>
-                    <div class="small text-navy" style="line-height: 1.5;">${item.Tindak_Lanjut}</div>
+                    <div class="small text-navy" style="line-height: 1.5;">${cleanTindakLanjutStr}</div>
                 </div>
             </td>
           </tr>`;
           
         htmlMobile += `
           <div class="mobile-card">
-            <div class="fw-bold text-navy mb-2">${item.Aktivitas}</div>
+            <div class="fw-bold text-navy mb-2">${cleanAktivitasStr}</div>
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="badge-status ${statusObj.class} px-2 py-1" style="font-size:0.65rem;">${statusObj.label}</div>
                 <div class="small fw-bold text-royal">${progNum}%</div>
             </div>
-            <div class="small text-slate mb-1"><i class="fas fa-building me-1"></i> ${item.Divisi} ${item.Wilayah_Kerja ? `(${item.Wilayah_Kerja})` : ''}</div>
+            <div class="small text-slate mb-1"><i class="fas fa-building me-1"></i> ${cleanDivisiStr} ${cleanWilayahStr ? `(${cleanWilayahStr})` : ''}</div>
             <div class="small text-slate"><i class="fas fa-calendar me-1"></i> ETA: ${formattedDate}</div>
           </div>`;
 
@@ -3821,8 +3905,8 @@
             htmlAuth += `
               <tr>
                 <td class="ps-4 py-3">
-                  <div class="fw-bold text-navy mb-1">${item.Aktivitas}</div>
-                  <span class="text-slate small"><i class="fas fa-map-marker-alt me-1"></i>${item.Wilayah_Kerja || 'Global'}</span>
+                  <div class="fw-bold text-navy mb-1">${cleanAktivitasStr}</div>
+                  <span class="text-slate small"><i class="fas fa-map-marker-alt me-1"></i>${cleanWilayahStr || 'Global'}</span>
                 </td>
                 <td class="py-3"><span class="badge-status ${statusObj.class}">${statusObj.label}</span></td>
                 <td class="py-3 fw-bold text-royal fs-5">${progNum}%</td>
@@ -4161,73 +4245,105 @@
     }
 
     function sendTotalWA() {
-        const inputUser = prompt("Autentikasi Pimpinan (Masukkan PIN):");
-        if (inputUser === null) return;
-        
-        startLoading("Memverifikasi Otorisasi PIN...");
-        google.script.run
-          .withSuccessHandler(res => {
-            endLoading();
-            if (!res.success) { Swal.fire('Ditolak', res.message, 'error'); return; }
-            if (!currentDataForWA || currentDataForWA.length === 0) return;
-            
-            const tglSekarang = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-            const rekap = {};
-            currentDataForWA.forEach(item => {
-                let div = (item.Divisi) ? item.Divisi.toString().replace(/[\u00A0\u1680\u180e\u2000-\u200b\u202f\u205f\u3000]/g, " ").trim() : 'Lainnya';
-                if (div !== "") rekap[div] = (rekap[div] || 0) + 1;
-            });
+        Swal.fire({
+            title: 'Autentikasi Pimpinan',
+            text: 'Masukkan PIN Otorisasi untuk Mengirim Rekap WhatsApp:',
+            input: 'password',
+            inputAttributes: {
+                autocapitalize: 'off',
+                autocorrect: 'off'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Verifikasi & Kirim',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#2563EB',
+            cancelButtonColor: '#64748B',
+            customClass: { popup: 'rounded-4' }
+        }).then((result) => {
+            if (!result.isConfirmed || !result.value) return;
+            const inputUser = result.value;
 
-            let pesan = `*📊 REKAPITULASI AKTIVITAS ENTERPRISE*\n📅 Periode: ${tglSekarang}\n-----------------------------------\n\n`;
-            for (const d in rekap) { pesan += `🔹 *${d}*: ${rekap[d]} Aktivitas\n`; }
-            pesan += `\n*TOTAL:* ${currentDataForWA.length} Pekerjaan Terdata\n-----------------------------------\n\n`;
-            pesan += "_Mohon seluruh Kepala Divisi memastikan akurasi data update progres mingguan pada dashboard._";
-            
-            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(pesan), '_blank');
-          })
-          .withFailureHandler(() => { endLoading(); Swal.fire('Error', 'Gagal memvalidasi kredensial.', 'error'); })
-          .verifyLeaderPIN(inputUser);
+            startLoading("Memverifikasi Otorisasi PIN...");
+            google.script.run
+              .withSuccessHandler(res => {
+                endLoading();
+                if (!res.success) { Swal.fire('Ditolak', res.message, 'error'); return; }
+                if (!currentDataForWA || currentDataForWA.length === 0) return;
+                
+                const tglSekarang = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                const rekap = {};
+                currentDataForWA.forEach(item => {
+                    let div = (item.Divisi) ? item.Divisi.toString().replace(/[\u00A0\u1680\u180e\u2000-\u200b\u202f\u205f\u3000]/g, " ").trim() : 'Lainnya';
+                    if (div !== "") rekap[div] = (rekap[div] || 0) + 1;
+                });
+
+                let pesan = `*📊 REKAPITULASI AKTIVITAS ENTERPRISE*\n📅 Periode: ${tglSekarang}\n-----------------------------------\n\n`;
+                for (const d in rekap) { pesan += `🔹 *${d}*: ${rekap[d]} Aktivitas\n`; }
+                pesan += `\n*TOTAL:* ${currentDataForWA.length} Pekerjaan Terdata\n-----------------------------------\n\n`;
+                pesan += "_Mohon seluruh Kepala Divisi memastikan akurasi data update progres mingguan pada dashboard._";
+                
+                window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(pesan), '_blank');
+              })
+              .withFailureHandler(() => { endLoading(); Swal.fire('Error', 'Gagal memvalidasi kredensial.', 'error'); })
+              .verifyLeaderPIN(inputUser);
+        });
     }
 
     function sendOverdueWA() {
-        const inputUser = prompt("Autentikasi Pimpinan (Masukkan PIN):");
-        if (inputUser === null) return;
-        
-        startLoading("Memverifikasi Otorisasi PIN...");
-        google.script.run
-          .withSuccessHandler(res => {
-            endLoading();
-            if (!res.success) { Swal.fire('Ditolak', res.message, 'error'); return; }
-            if (!currentDataForWA || currentDataForWA.length === 0) return;
-            
-            const tglSekarang = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-            const hariIni = new Date(); hariIni.setHours(0,0,0,0);
+        Swal.fire({
+            title: 'Autentikasi Pimpinan',
+            text: 'Masukkan PIN Otorisasi untuk Mengirim Alert WhatsApp:',
+            input: 'password',
+            inputAttributes: {
+                autocapitalize: 'off',
+                autocorrect: 'off'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Verifikasi & Kirim',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#F43F5E',
+            cancelButtonColor: '#64748B',
+            customClass: { popup: 'rounded-4' }
+        }).then((result) => {
+            if (!result.isConfirmed || !result.value) return;
+            const inputUser = result.value;
 
-            const overdueList = currentDataForWA.filter(item => {
-                const tglTarget = new Date(item.Tanggal_Selesai); tglTarget.setHours(0,0,0,0);
-                return ((parseInt(item.Progres) || 0) < 100 && hariIni > tglTarget);
-            });
+            startLoading("Memverifikasi Otorisasi PIN...");
+            google.script.run
+              .withSuccessHandler(res => {
+                endLoading();
+                if (!res.success) { Swal.fire('Ditolak', res.message, 'error'); return; }
+                if (!currentDataForWA || currentDataForWA.length === 0) return;
+                
+                const tglSekarang = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                const hariIni = new Date(); hariIni.setHours(0,0,0,0);
 
-            if (overdueList.length === 0) { Swal.fire('Info', 'Tidak ada data Overdue.', 'info'); return; }
+                const overdueList = currentDataForWA.filter(item => {
+                    const tglTarget = new Date(item.Tanggal_Selesai); tglTarget.setHours(0,0,0,0);
+                    return ((parseInt(item.Progres) || 0) < 100 && hariIni > tglTarget);
+                });
 
-            const rincian = {};
-            overdueList.forEach(item => {
-                let div = (item.Divisi) ? item.Divisi.replace(/[\u00A0\u1680\u180e\u2000-\u200b\u202f\u205f\u3000]/g, " ").trim() : 'Lainnya';
-                if (!rincian[div]) rincian[div] = [];
-                rincian[div].push(item.Aktivitas);
-            });
+                if (overdueList.length === 0) { Swal.fire('Info', 'Tidak ada data Overdue.', 'info'); return; }
 
-            let pesan = `*⚠️ ALERT: LAPORAN PEKERJAAN OVERDUE*\n📅 Tanggal: ${tglSekarang}\n-----------------------------------\n\n`;
-            for (const d in rincian) {
-                pesan += `🏢 *${d}* (${rincian[d].length} Tugas):\n`;
-                rincian[d].forEach((tugas, i) => { pesan += `   ${i+1}. ${tugas}\n`; });
-                pesan += `\n`;
-            }
-            pesan += "-----------------------------------\n\n_Segera lakukan tindak lanjut dan perbarui status di sistem monitoring._";
-            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(pesan), '_blank');
-          })
-          .withFailureHandler(() => { endLoading(); Swal.fire('Error', 'Gagal memvalidasi kredensial.', 'error'); })
-          .verifyLeaderPIN(inputUser);
+                const rincian = {};
+                overdueList.forEach(item => {
+                    let div = (item.Divisi) ? item.Divisi.replace(/[\u00A0\u1680\u180e\u2000-\u200b\u202f\u205f\u3000]/g, " ").trim() : 'Lainnya';
+                    if (!rincian[div]) rincian[div] = [];
+                    rincian[div].push(item.Aktivitas);
+                });
+
+                let pesan = `*⚠️ ALERT: LAPORAN PEKERJAAN OVERDUE*\n📅 Tanggal: ${tglSekarang}\n-----------------------------------\n\n`;
+                for (const d in rincian) {
+                    pesan += `🏢 *${d}* (${rincian[d].length} Tugas):\n`;
+                    rincian[d].forEach((tugas, i) => { pesan += `   ${i+1}. ${tugas}\n`; });
+                    pesan += `\n`;
+                }
+                pesan += "-----------------------------------\n\n_Segera lakukan tindak lanjut dan perbarui status di sistem monitoring._";
+                window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(pesan), '_blank');
+              })
+              .withFailureHandler(() => { endLoading(); Swal.fire('Error', 'Gagal memvalidasi kredensial.', 'error'); })
+              .verifyLeaderPIN(inputUser);
+        });
     }
 
     function toggleChat() {
@@ -7264,10 +7380,6 @@ function BAGAS5_ensureStyles() {
 
   document.head.appendChild(style);
 }
-
-/* ============================================================
- * END BAGAS5 CLIENT
- * ============================================================ */
 
 /* ============================================================
  * END BAGAS5 CLIENT
