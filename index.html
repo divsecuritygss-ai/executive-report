@@ -4668,7 +4668,7 @@
           doubleClickZoom: true,
           boxZoom: true,
           touchZoom: true
-        }).setView([0.8, 101.5], 6);
+        }).setView([-1.0, 106.5], 5);
 
         const isDark = document.body.getAttribute('data-theme') === 'dark';
         const tileUrl = isDark 
@@ -4716,7 +4716,7 @@
                 markerRegistry[activeVal].openPopup();
               }
             } else if (activeVal === "All") {
-              mapInstance.flyTo([0.8, 101.5], 6, { animate: true, duration: 1.2 });
+              mapInstance.flyTo([-1.0, 106.5], 5, { animate: true, duration: 1.2 });
               mapInstance.closePopup();
             }
           };
