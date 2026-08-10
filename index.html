@@ -1035,6 +1035,71 @@
     [data-theme="dark"] .theme-label .fa-moon { color: #F59E0B; }
 
     /* =========================================
+       KEI ENTITY THEME ENGINE (DEEP EMERALD)
+       ========================================= */
+    [data-entity="KEI"] {
+      --royal: #059669;
+      --royal-glow: rgba(5, 150, 105, 0.35);
+    }
+    [data-entity="KEI"] #btnEntityKEI {
+      background: linear-gradient(135deg, #047857 0%, #065F46 100%) !important;
+      border-color: #047857 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 12px rgba(4, 120, 87, 0.35) !important;
+    }
+    [data-entity="KEI"] .btn-primary:not(#btnEntityEMP),
+    [data-entity="KEI"] #btnTanyaHeader,
+    [data-entity="KEI"] #loginBtn {
+      background: linear-gradient(135deg, #047857 0%, #065F46 100%) !important;
+      border-color: #047857 !important;
+    }
+    [data-entity="KEI"] .text-primary,
+    [data-entity="KEI"] .text-royal {
+      color: #059669 !important;
+    }
+    [data-entity="KEI"] .bg-primary-subtle {
+      background-color: rgba(16, 185, 129, 0.12) !important;
+      color: #047857 !important;
+    }
+
+    /* SIDEBAR ADAPTATION FOR KEI ENTITY */
+    [data-entity="KEI"] .sidebar-modern {
+      background-color: #022C22 !important; /* Dark Emerald Forest Background */
+    }
+    [data-entity="KEI"] .sidebar-item.active {
+      background-color: #047857 !important; /* Emerald Active Menu Highlight */
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 12px rgba(4, 120, 87, 0.4) !important;
+    }
+    [data-entity="KEI"] .sidebar-header .badge {
+      background: rgba(16, 185, 129, 0.2) !important;
+      color: #34D399 !important;
+      border-color: rgba(16, 185, 129, 0.35) !important;
+    }
+
+    /* DARK MODE + KEI ENTITY COMBINED OVERRIDES */
+    [data-theme="dark"][data-entity="KEI"] {
+      --royal: #10B981;
+      --royal-glow: rgba(16, 185, 129, 0.35);
+      --bg: #021A12 !important; /* Deep Forest Dark Background */
+      --surface: #062E24 !important; /* Dark Emerald Surface / Card Background */
+    }
+    [data-theme="dark"][data-entity="KEI"] .sidebar-modern {
+      background-color: #011710 !important; /* Extra Dark Forest Green Sidebar */
+    }
+    [data-theme="dark"][data-entity="KEI"] .topbar-modern {
+      background: rgba(2, 26, 18, 0.85) !important;
+    }
+    [data-theme="dark"][data-entity="KEI"] .text-primary,
+    [data-theme="dark"][data-entity="KEI"] .text-royal {
+      color: #34D399 !important;
+    }
+    [data-theme="dark"][data-entity="KEI"] .bg-primary-subtle {
+      background-color: rgba(16, 185, 129, 0.2) !important;
+      color: #6EE7B7 !important;
+    }
+
+    /* =========================================
        MODAL LEGIBILITY & ACCESSIBILITY FIX
        ========================================= */
     .modal-content {
@@ -2378,6 +2443,9 @@
       const btnEMP = document.getElementById('btnEntityEMP');
       const btnKEI = document.getElementById('btnEntityKEI');
       const loginSelect = document.getElementById('l_entity');
+
+      // Terapkan atribut data-entity pada <body> untuk pemicu CSS Theme Switcher
+      document.body.setAttribute('data-entity', currentEntity || 'EMP');
 
       if (btnEMP && btnKEI) {
         if (currentEntity === 'KEI') {
