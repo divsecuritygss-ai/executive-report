@@ -2305,22 +2305,22 @@
           });
       };
 
-      // Registrasi Pemetaan Fungsi Operasional PWA Terisolasi (Multi-Entitas Aware)
-      GoogleScriptRunInstance.prototype.getInitialData = function(ent) { this._executeGet('getInitialData&entity=' + (ent || currentEntity)); };
-      GoogleScriptRunInstance.prototype.getDivisionsFromUsers = function(ent) { this._executeGet('getDivisionsFromUsers&entity=' + (ent || currentEntity)); };
-      GoogleScriptRunInstance.prototype.getActivities = function(ent) { this._executeGet('getActivities&entity=' + (ent || currentEntity)); };
-      GoogleScriptRunInstance.prototype.getArchivedActivities = function(ent) { this._executeGet('getArchivedActivities&entity=' + (ent || currentEntity)); };
-      GoogleScriptRunInstance.prototype.getRekapAggregation = function(ent) { this._executeGet('getRekapAggregation&entity=' + (ent || currentEntity)); };
+      // Registrasi Pemetaan Fungsi Operasional PWA Terisolasi (Multi-Entitas Clean API)
+      GoogleScriptRunInstance.prototype.getInitialData = function(ent) { this._executeGet('getInitialData', ent); };
+      GoogleScriptRunInstance.prototype.getDivisionsFromUsers = function(ent) { this._executeGet('getDivisionsFromUsers', ent); };
+      GoogleScriptRunInstance.prototype.getActivities = function(ent) { this._executeGet('getActivities', ent); };
+      GoogleScriptRunInstance.prototype.getArchivedActivities = function(ent) { this._executeGet('getArchivedActivities', ent); };
+      GoogleScriptRunInstance.prototype.getRekapAggregation = function(ent) { this._executeGet('getRekapAggregation', ent); };
       GoogleScriptRunInstance.prototype.getChatMessages = function() { this._executeGet('getChatMessages'); };
       GoogleScriptRunInstance.prototype.loginUser = function(form) { this._executePost('loginUser', [form]); };
       GoogleScriptRunInstance.prototype.saveActivity = function(payload) { this._executePost('saveActivity', [payload]); };
       GoogleScriptRunInstance.prototype.deleteActivity = function(id, user, devInfo, ent) { this._executePost('deleteActivity', [id, user, devInfo, ent || currentEntity]); };
       GoogleScriptRunInstance.prototype.sendMessage = function(sender, msg) { this._executePost('sendMessage', [sender, msg]); };
-      GoogleScriptRunInstance.prototype.changeOwnPassword = function(user, oldP, newP) { this._executePost('changeOwnPassword', [user, oldP, newP]); };
+      GoogleScriptRunInstance.prototype.changeOwnPassword = function(user, oldP, newP) { this._executePost('changeOwnPassword', [user, oldP, newP], ent || currentEntity); };
       GoogleScriptRunInstance.prototype.addNewUser = function(admin, payload) { this._executePost('addNewUser', [admin, payload]); };
       GoogleScriptRunInstance.prototype.verifyLeaderPIN = function(pin) { this._executePost('verifyLeaderPIN', [pin]); };
-      GoogleScriptRunInstance.prototype.adminResetUserPassword = function(admin, target, newP) { this._executePost('adminResetUserPassword', [admin, target, newP]); };
-      GoogleScriptRunInstance.prototype.requestPasswordReset = function(query) { this._executePost('requestPasswordReset', [query]); };
+      GoogleScriptRunInstance.prototype.adminResetUserPassword = function(admin, target, newP, ent) { this._executePost('adminResetUserPassword', [admin, target, newP, ent || currentEntity]); };
+      GoogleScriptRunInstance.prototype.requestPasswordReset = function(query, ent) { this._executePost('requestPasswordReset', [query, ent || currentEntity]); };
       GoogleScriptRunInstance.prototype.logoutUser = function(user, devInfo) { this._executePost('logoutUser', [user, devInfo]); };
       GoogleScriptRunInstance.prototype.trackVisitorHit = function(user, devInfo, view) { this._executePost('trackVisitorHit', [user, devInfo, view]); };
 
@@ -2380,19 +2380,22 @@
 
     function switchEntityContext(entity) {
       if (currentEntity === entity) return;
+      
+      // 1. SIMPAN STATE ENTITAS BARU
       currentEntity = entity;
       localStorage.setItem('executive_entity', currentEntity);
       
-      // 1. ISOLASI STATE MEMORI LOKAL: Bersihkan data entitas sebelumnya secara instan
+      // 2. RESET MEMORI LOKAL INSTAN: Cegah kebocoran data EMP ke KEI
       allData = [];
       archiveData = [];
       auditActiveDivisions = [];
       
-      // 2. RESETS VISUAL / DOM STATE INSTAN: Bersihkan tampilan tabel & chart sebelum data baru tiba
+      // 3. CLEANUP DOM VISUAL
       applyGlobalFilters();
       renderTableSkeletons();
-      
       updateEntityPillUI();
+      
+      // 4. UNDUH DATA AKTUAL SEGAR DARI SERVER
       refreshData();
     }
 
@@ -2622,7 +2625,11 @@
     }
 
     window.onload = () => {
-      // INIT THEME ENGINE
+      // 1. BACA STATE ENTITAS TERAKHIR DARI LOCALSTORAGE
+      currentEntity = localStorage.getItem('executive_entity') || 'EMP';
+      updateEntityPillUI();
+
+      // 2. INIT THEME ENGINE
       const savedTheme = localStorage.getItem('theme_preference');
       if (savedTheme === 'dark') {
           document.body.setAttribute('data-theme', 'dark');
