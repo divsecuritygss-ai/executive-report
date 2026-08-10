@@ -1188,10 +1188,18 @@
     <!-- RIGHT MAIN PANEL -->
     <div class="main-panel">
       
-      <!-- TOP HEADER WITH ADAPTIVE MOBILE LAYOUT ENGINE -->
+      <!-- TOP HEADER WITH ADAPTIVE MOBILE LAYOUT ENGINE & ENTITY SWITCHER -->
       <header class="topbar-modern">
         <div>
-          <h4 class="fw-800 m-0 text-navy" style="letter-spacing: -0.5px;">Dashboard Weekly Report</h4>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <h4 class="fw-800 m-0 text-navy" style="letter-spacing: -0.5px;">Dashboard Weekly Report</h4>
+            
+            <!-- ENTITY PILL SWITCHER (EMP vs KEI) -->
+            <div class="btn-group p-1 bg-light border rounded-pill shadow-sm ms-2" role="group" id="entitySwitcherGroup">
+              <button type="button" class="btn btn-sm rounded-pill fw-800 px-3 py-1 btn-primary" id="btnEntityEMP" onclick="switchEntityContext('EMP')">EMP</button>
+              <button type="button" class="btn btn-sm rounded-pill fw-800 px-3 py-1 text-slate" id="btnEntityKEI" onclick="switchEntityContext('KEI')">KEI</button>
+            </div>
+          </div>
           <!-- DESKRIPSI OTOMATIS SEMBUNYI DI HP UNTUK MENGHEMAT RUANG LAYAR (D-NONE D-MD-BLOCK) -->
           <div class="small text-slate mt-0.5 mb-2 d-none d-md-block">Konsolidasi laporan progres mingguan divisi sebagai instrumen akuntabilitas kinerja & keputusan strategis pimpinan.</div>
           
@@ -1514,6 +1522,7 @@
                 <option value="JAKARTA">JAKARTA</option>
                 <option value="S-CPP">S-CPP</option>
                 <option value="KORINCI BARU">KORINCI BARU</option>
+                <option value="KEI">KEI</option>
                 <option value="MULTI">MULTI</option>
               </select>
             </div>
@@ -1667,6 +1676,13 @@
         </div>
         <form id="loginForm">
           <div class="mb-3">
+            <label class="form-label small fw-bold text-navy">Entitas Perusahaan <span class="text-danger">*</span></label>
+            <select id="l_entity" class="form-select bg-light fw-bold text-primary" required onchange="onLoginEntityChange(this.value)">
+              <option value="EMP">EMP (Energy Mega Persada)</option>
+              <option value="KEI">KEI (Kangean Energy Indonesia)</option>
+            </select>
+          </div>
+          <div class="mb-3">
             <label class="form-label small fw-bold text-navy">Username SSO</label>
             <input type="text" id="l_user" class="form-control bg-light" required placeholder="Masukkan username...">
           </div>
@@ -1727,6 +1743,7 @@
                         <option value="JAKARTA">JAKARTA</option>
                         <option value="S-CPP">S-CPP</option>
                         <option value="KORINCI BARU">KORINCI BARU</option>
+                        <option value="KEI">KEI</option>
                         <option value="MULTI">MULTI</option>
                     </select>
                 </div>
@@ -2116,7 +2133,7 @@
           endLoading();
           Swal.fire('Error', 'Gagal tersambung ke server', 'error');
         })
-        .requestPasswordReset(query);
+        .requestPasswordReset(query, currentEntity);
     };
 
     document.getElementById('adminResetForm').onsubmit = function(e) {
@@ -2145,7 +2162,7 @@
           endLoading();
           Swal.fire('Error', 'Gagal memproses data ke server', 'error');
         })
-        .adminResetUserPassword(currentUser.username, targetUser, newPass);
+        .adminResetUserPassword(currentUser.username, targetUser, newPass, currentEntity);
     };
 
     document.getElementById('passwordForm').onsubmit = function(e) {
@@ -2179,12 +2196,13 @@
           endLoading();
           Swal.fire('Error', 'Gagal tersambung ke server', 'error');
         })
-        .changeOwnPassword(currentUser.username, oldPass, newPass);
+        .changeOwnPassword(currentUser.username, oldPass, newPass, currentEntity);
     };
 
     document.getElementById('adminUserForm').onsubmit = function(e) {
       e.preventDefault();
       const payload = {
+        entity: currentEntity,
         username: document.getElementById('u_username').value,
         divisi: document.getElementById('u_nama').value,
         email: document.getElementById('u_email').value,
@@ -2245,8 +2263,9 @@
         return this;
       };
 
-      GoogleScriptRunInstance.prototype._executeGet = function(action) {
-        fetch(`${GAS_SECURITY_API_URL}?action=${action}`, { redirect: 'follow' })
+      GoogleScriptRunInstance.prototype._executeGet = function(action, ent) {
+        const entityParam = ent || (typeof currentEntity !== 'undefined' ? currentEntity : 'EMP');
+        fetch(`${GAS_SECURITY_API_URL}?action=${action}&entity=${entityParam}`, { redirect: 'follow' })
           .then(async res => {
             const text = await res.text();
             try {
@@ -2282,16 +2301,16 @@
           });
       };
 
-      // Registrasi Pemetaan Fungsi Operasional PWA Terisolasi
-      GoogleScriptRunInstance.prototype.getInitialData = function() { this._executeGet('getInitialData'); };
-      GoogleScriptRunInstance.prototype.getDivisionsFromUsers = function() { this._executeGet('getDivisionsFromUsers'); };
-      GoogleScriptRunInstance.prototype.getActivities = function() { this._executeGet('getActivities'); };
-      GoogleScriptRunInstance.prototype.getArchivedActivities = function() { this._executeGet('getArchivedActivities'); };
-      GoogleScriptRunInstance.prototype.getRekapAggregation = function() { this._executeGet('getRekapAggregation'); };
+      // Registrasi Pemetaan Fungsi Operasional PWA Terisolasi (Multi-Entitas Aware)
+      GoogleScriptRunInstance.prototype.getInitialData = function(ent) { this._executeGet('getInitialData&entity=' + (ent || currentEntity)); };
+      GoogleScriptRunInstance.prototype.getDivisionsFromUsers = function(ent) { this._executeGet('getDivisionsFromUsers&entity=' + (ent || currentEntity)); };
+      GoogleScriptRunInstance.prototype.getActivities = function(ent) { this._executeGet('getActivities&entity=' + (ent || currentEntity)); };
+      GoogleScriptRunInstance.prototype.getArchivedActivities = function(ent) { this._executeGet('getArchivedActivities&entity=' + (ent || currentEntity)); };
+      GoogleScriptRunInstance.prototype.getRekapAggregation = function(ent) { this._executeGet('getRekapAggregation&entity=' + (ent || currentEntity)); };
       GoogleScriptRunInstance.prototype.getChatMessages = function() { this._executeGet('getChatMessages'); };
       GoogleScriptRunInstance.prototype.loginUser = function(form) { this._executePost('loginUser', [form]); };
       GoogleScriptRunInstance.prototype.saveActivity = function(payload) { this._executePost('saveActivity', [payload]); };
-      GoogleScriptRunInstance.prototype.deleteActivity = function(id) { this._executePost('deleteActivity', [id]); };
+      GoogleScriptRunInstance.prototype.deleteActivity = function(id, user, devInfo, ent) { this._executePost('deleteActivity', [id, user, devInfo, ent || currentEntity]); };
       GoogleScriptRunInstance.prototype.sendMessage = function(sender, msg) { this._executePost('sendMessage', [sender, msg]); };
       GoogleScriptRunInstance.prototype.changeOwnPassword = function(user, oldP, newP) { this._executePost('changeOwnPassword', [user, oldP, newP]); };
       GoogleScriptRunInstance.prototype.addNewUser = function(admin, payload) { this._executePost('addNewUser', [admin, payload]); };
@@ -2324,6 +2343,7 @@
       };
     }
 
+    let currentEntity = localStorage.getItem('executive_entity') || 'EMP';
     let allData = [];
     let archiveData = [];
     let currentUser = null;
@@ -2333,6 +2353,46 @@
     let mapInstance = null;
     let mapTileLayer = null;
     let markerRegistry = {};
+
+    function updateEntityPillUI() {
+      const btnEMP = document.getElementById('btnEntityEMP');
+      const btnKEI = document.getElementById('btnEntityKEI');
+      const loginSelect = document.getElementById('l_entity');
+
+      if (btnEMP && btnKEI) {
+        if (currentEntity === 'KEI') {
+          btnKEI.className = 'btn btn-sm rounded-pill fw-800 px-3 py-1 btn-primary';
+          btnEMP.className = 'btn btn-sm rounded-pill fw-800 px-3 py-1 text-slate';
+        } else {
+          btnEMP.className = 'btn btn-sm rounded-pill fw-800 px-3 py-1 btn-primary';
+          btnKEI.className = 'btn btn-sm rounded-pill fw-800 px-3 py-1 text-slate';
+        }
+      }
+
+      if (loginSelect) {
+        loginSelect.value = currentEntity;
+      }
+    }
+
+    function switchEntityContext(entity) {
+      if (currentEntity === entity) return;
+      currentEntity = entity;
+      localStorage.setItem('executive_entity', currentEntity);
+      
+      // ISOLASI STATE MEMORI LOKAL: Bersihkan data entitas sebelumnya agar tidak terjadi kebocoran silang
+      allData = [];
+      archiveData = [];
+      auditActiveDivisions = [];
+      
+      updateEntityPillUI();
+      refreshData();
+    }
+
+    function onLoginEntityChange(entity) {
+      currentEntity = entity;
+      localStorage.setItem('executive_entity', currentEntity);
+      updateEntityPillUI();
+    }
 
     function formatToDdmmyy(dateStr) {
       if (!dateStr) return "-";
@@ -2652,15 +2712,18 @@
       const btnSubmit = e.target.querySelector('button[type="submit"]');
       btnSubmit.disabled = true;
 
+      const entity = document.getElementById('l_entity') ? document.getElementById('l_entity').value : currentEntity;
       const u = document.getElementById('l_user').value;
       const p = document.getElementById('l_pass').value;
-      startLoading("Verifikasi Akses...");
+      startLoading("Verifikasi Akses [" + entity + "]...");
       
       google.script.run
         .withSuccessHandler(res => {
           btnSubmit.disabled = false;
           if (res.success) { 
             currentUser = res.user; 
+            currentEntity = entity;
+            localStorage.setItem('executive_entity', currentEntity);
             localStorage.setItem('executive_auth', JSON.stringify(currentUser)); 
             
             const modalEl = document.getElementById('loginModal');
@@ -2670,7 +2733,7 @@
             }
             
             applyAuthUI(); 
-            refreshData(); 
+            refreshData();
 
             // TAMPILKAN OVERLAY LOADING DENGAN PESAN "BISMILLAH, SEHAT SELALU"
             startLoading("BISMILLAH, SEHAT SELALU");
@@ -2695,7 +2758,7 @@
           btnSubmit.disabled = false;
           Swal.fire('Error', 'Gagal menghubungi server', 'error');
         })
-        .loginUser({username: u, password: p});
+        .loginUser({username: u, password: p, entity: entity});
     };
 
     function handleLogout() { 
@@ -3218,7 +3281,8 @@
     let auditActiveDivisions = [];
 
     function refreshData() {
-      startLoading("Menghubungkan ke Cloud Database...");
+      updateEntityPillUI();
+      startLoading("Menghubungkan ke Cloud Database [" + currentEntity + "]...");
       renderTableSkeletons();
       
       google.script.run
@@ -3241,7 +3305,7 @@
           console.warn("Respon getInitialData gagal, beralih ke fallback mode:", err);
           fallbackLegacyRefresh();
         })
-        .getInitialData();
+        .getInitialData(currentEntity);
     }
 
     function fallbackLegacyRefresh() {
@@ -3266,17 +3330,17 @@
       google.script.run
         .withSuccessHandler(divList => { cachedDivList = divList || []; divisiLoaded = true; checkSelesaiSinkronisasi(); })
         .withFailureHandler(() => { divisiLoaded = true; checkSelesaiSinkronisasi(); })
-        .getDivisionsFromUsers();
+        .getDivisionsFromUsers(currentEntity);
       
       google.script.run
         .withSuccessHandler(data => { cachedActivities = data || []; activitiesLoaded = true; checkSelesaiSinkronisasi(); })
         .withFailureHandler(() => { activitiesLoaded = true; checkSelesaiSinkronisasi(); })
-        .getActivities();
+        .getActivities(currentEntity);
 
       google.script.run
         .withSuccessHandler(data => { cachedRekap = data || { labels: [], data: [] }; rekapLoaded = true; checkSelesaiSinkronisasi(); })
         .withFailureHandler(() => { rekapLoaded = true; checkSelesaiSinkronisasi(); })
-        .getRekapAggregation();
+        .getRekapAggregation(currentEntity);
     }
 
     function populateFilters(divList = []) {
@@ -3419,12 +3483,12 @@
 
       // LAZY LOADING: Ambil data arsip hanya jika filter "Done" dipilih dan data belum pernah diunduh
       if (selectedStatus === 'Done' && archiveData.length === 0) {
-        startLoading("Mengunduh Dokumen Rekap Kegiatan...");
+        startLoading("Mengunduh Dokumen Rekap Kegiatan [" + currentEntity + "]...");
         google.script.run.withSuccessHandler(data => {
           archiveData = data || [];
           endLoading();
           applyGlobalFilters(); // Eksekusi ulang filter setelah data terunduh
-        }).getArchivedActivities();
+        }).getArchivedActivities(currentEntity);
         return; // Hentikan eksekusi sementara
       }
 
@@ -3963,7 +4027,7 @@
               endLoading();
               Swal.fire('Error', 'Gagal menghapus data', 'error');
             })
-            .deleteActivity(id, activeUser, deviceInfo);
+            .deleteActivity(id, activeUser, deviceInfo, currentEntity);
         }
       });
     }
@@ -3974,6 +4038,7 @@
       btnSubmit.disabled = true;
 
       const payload = { 
+        entity: currentEntity,
         ID: document.getElementById('f_id').value, 
         Aktivitas: document.getElementById('f_aktivitas').value, 
         Divisi: document.getElementById('f_divisi').value, 
@@ -4480,7 +4545,8 @@
         { name: "GEBANG", lat: 4.118731113, lng: 98.20732654 },
         { name: "TONGA", lat: 1.259027024, lng: 99.85646294 },
         { name: "PGE", lat: 5.06838752, lng: 97.25574993 },
-        { name: "JAKARTA", lat: -6.219009087, lng: 106.8344576 }
+        { name: "JAKARTA", lat: -6.219009087, lng: 106.8344576 },
+        { name: "KEI", lat: -6.956711045327138, lng: 115.92982812517396 }
       ];
 
       var mapContainer = document.getElementById("mapContainer");
@@ -4585,7 +4651,8 @@
         { name: "GEBANG", lat: 4.118731113, lng: 98.20732654 },
         { name: "TONGA", lat: 1.259027024, lng: 99.85646294 },
         { name: "PGE", lat: 5.06838752, lng: 97.25574993 },
-        { name: "JAKARTA", lat: -6.219009087, lng: 106.8344576 }
+        { name: "JAKARTA", lat: -6.219009087, lng: 106.8344576 },
+        { name: "KEI", lat: -6.956711045327138, lng: 115.92982812517396 }
       ];
 
       const dataList = currentData || [];
