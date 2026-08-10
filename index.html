@@ -1099,6 +1099,15 @@
       color: #94A3B8 !important;
     }
 
+/* ANIMASI DUAL CYBER ORBIT SPINNER */
+    @keyframes cyberSpinOuter {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes cyberSpinInner {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(-360deg); }
+    }
 </style>
 </head>
 <body>
@@ -1112,10 +1121,17 @@
         <span class="node-badge" style="font-size:0.6rem; color:#475569;">SECURE SHIELD ACTIVE</span>
       </div>
       
-      <!-- LOADING SPINNER ICON NODE -->
+      <!-- LOADING SPINNER ICON NODE (CYBER ORBIT SPINNER) -->
       <div class="mb-4">
-        <div class="text-white rounded-4 p-3 d-inline-flex align-items-center justify-content-center shadow-lg" style="background: linear-gradient(135deg, #1A2333 0%, #0B0F19 100%); width: 68px; height: 68px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 0 35px rgba(6,182,212,0.18) !important;">
-          <svg width="34" height="34" fill="#06B6D4" viewBox="0 0 16 16" style="animation: spin-svg 3.5s linear infinite;"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13z"/><path d="M7.5 4v4.5H11v-1H8.5V4h-1z"/></svg> 
+        <div class="cyber-spinner-box position-relative d-inline-flex align-items-center justify-content-center" style="width: 76px; height: 76px;">
+          <!-- OUTER GLOW ORBIT -->
+          <div class="position-absolute w-100 h-100 rounded-circle" style="border: 2px dashed rgba(6, 182, 212, 0.35); animation: cyberSpinOuter 8s linear infinite;"></div>
+          <!-- INNER HIGH-SPEED LASER RING -->
+          <div class="position-absolute rounded-circle" style="width: 60px; height: 60px; border: 3px solid transparent; border-top-color: #06B6D4; border-right-color: #3B82F6; animation: cyberSpinInner 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite; filter: drop-shadow(0 0 8px #06B6D4);"></div>
+          <!-- CORE TECH ICON -->
+          <div class="position-absolute rounded-circle d-flex align-items-center justify-content-center text-info shadow-lg" style="background: linear-gradient(135deg, #0F172A 0%, #020617 100%); width: 44px; height: 44px; border: 1px solid rgba(56, 189, 248, 0.25);">
+            <i class="fas fa-server fs-5 text-cyan" style="color: #06B6D4; filter: drop-shadow(0 0 6px rgba(6,182,212,0.8));"></i>
+          </div>
         </div>
       </div>
       
@@ -2316,7 +2332,7 @@
       GoogleScriptRunInstance.prototype.saveActivity = function(payload) { this._executePost('saveActivity', [payload]); };
       GoogleScriptRunInstance.prototype.deleteActivity = function(id, user, devInfo, ent) { this._executePost('deleteActivity', [id, user, devInfo, ent || currentEntity]); };
       GoogleScriptRunInstance.prototype.sendMessage = function(sender, msg) { this._executePost('sendMessage', [sender, msg]); };
-      GoogleScriptRunInstance.prototype.changeOwnPassword = function(user, oldP, newP) { this._executePost('changeOwnPassword', [user, oldP, newP], ent || currentEntity); };
+      GoogleScriptRunInstance.prototype.changeOwnPassword = function(user, oldP, newP, ent) { this._executePost('changeOwnPassword', [user, oldP, newP], ent || currentEntity); };
       GoogleScriptRunInstance.prototype.addNewUser = function(admin, payload) { this._executePost('addNewUser', [admin, payload]); };
       GoogleScriptRunInstance.prototype.verifyLeaderPIN = function(pin) { this._executePost('verifyLeaderPIN', [pin]); };
       GoogleScriptRunInstance.prototype.adminResetUserPassword = function(admin, target, newP, ent) { this._executePost('adminResetUserPassword', [admin, target, newP, ent || currentEntity]); };
