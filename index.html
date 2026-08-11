@@ -718,6 +718,39 @@
       box-shadow: 0 4px 12px rgba(244, 63, 94, 0.12);
     }
 
+    /* EXECUTIVE ANNOUNCEMENT BROADCAST TICKER BANNER */
+    .announcement-ticker-card {
+      background: linear-gradient(135deg, rgba(254, 243, 199, 0.9) 0%, rgba(254, 249, 195, 0.95) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-left: 5px solid #F59E0B !important;
+      border-radius: 14px;
+      padding: 10px 18px;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.08);
+    }
+    [data-theme="dark"] .announcement-ticker-card {
+      background: linear-gradient(135deg, rgba(120, 53, 15, 0.35) 0%, rgba(69, 26, 3, 0.45) 100%) !important;
+      border-color: rgba(245, 158, 11, 0.35) !important;
+    }
+    .ticker-wrapper {
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      width: 100%;
+    }
+    .ticker-content {
+      display: inline-block;
+      white-space: nowrap;
+      padding-left: 100%;
+      animation: tickerMarquee 26s linear infinite;
+    }
+    .ticker-wrapper:hover .ticker-content {
+      animation-play-state: paused;
+    }
+    @keyframes tickerMarquee {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-100%, 0, 0); }
+    }
+
     /* FLOATING CHAT WIDGET (ELEVATED POSITION TO PREVENT SEND BUTTON OVERLAP) */
     .chat-widget {
         position: fixed; bottom: 105px; right: 30px;
@@ -1343,6 +1376,20 @@
       <!-- ============================================== -->
       <main id="homeView" class="p-4 pb-5">
 
+        <!-- EXECUTIVE ANNOUNCEMENT BROADCAST BANNER (RUNNING TEXT) -->
+        <div class="announcement-ticker-card mb-4 d-flex align-items-center gap-3">
+          <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <span class="badge bg-warning text-dark fw-800 rounded-pill px-3 py-1.5 shadow-sm d-inline-flex align-items-center gap-2" style="font-size:0.72rem; letter-spacing:0.5px;">
+              <i class="fas fa-bullhorn text-danger fs-6 me-1"></i> INFORMASI
+            </span>
+          </div>
+          <div class="ticker-wrapper flex-grow-1">
+            <div class="ticker-content fw-700 text-navy" id="broadcastTickerText" style="font-size: 0.88rem;">
+              Persiapkan Seluruh Kebutuhan Dokumentasi Untuk Menghadapi Audit SMAP 37001 Pada 26 - 28 Agustus 2026 &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp; Persiapkan Seluruh Kebutuhan Dokumentasi Untuk Menghadapi Audit SMAP 37001 Pada 26 - 28 Agustus 2026
+            </div>
+          </div>
+        </div>
+
         <!-- ROW 1: 5 EXECUTIVE KPI CARDS (RESPONSIVE GRID) -->
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
           <!-- CARD 1: TOTAL AKTIVITAS -->
@@ -1449,8 +1496,8 @@
         <div class="col-xl-5 d-flex flex-column">
           <div class="overdue-portrait-card p-4 h-100" id="overdueAlertCenter">
             <div class="pb-3 border-bottom mb-3">
-              <div class="d-flex align-items-center gap-2.5 mb-2">
-                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width:38px; height:38px;">
+              <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm me-2" style="width:38px; height:38px;">
                   <i class="fas fa-exclamation-triangle fs-6"></i>
                 </div>
                 <div>
@@ -2459,6 +2506,18 @@
 
       if (loginSelect) {
         loginSelect.value = currentEntity;
+      }
+
+      // UPDATE PESAN RUNNING TEXT DEDIKASI PER ENTITAS (EMP vs KEI)
+      const tickerEl = document.getElementById('broadcastTickerText');
+      if (tickerEl) {
+        const announcements = {
+          EMP: 'Persiapkan Seluruh Kebutuhan Dokumentasi Untuk Menghadapi Audit SMAP 37001 Pada 26 - 28 Agustus 2026',
+          KEI: 'Selamat Bergabung PT Kangean Energy Indonesia'
+        };
+        const msg = announcements[currentEntity] || announcements.EMP;
+        // Duplikasi pesan dengan pemisah bullet agar animasi berjalan terus tanpa jeda kosong
+        tickerEl.innerHTML = `${msg} &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp; ${msg}`;
       }
     }
 
