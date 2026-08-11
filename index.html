@@ -718,6 +718,44 @@
       box-shadow: 0 4px 12px rgba(244, 63, 94, 0.12);
     }
 
+    /* VISITOR TELEMETRY CAPSULE EXECUTIVE STYLES */
+    .visitor-telemetry-capsule {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0 !important;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      height: 38px;
+    }
+    .visitor-telemetry-capsule:hover {
+      border-color: rgba(37, 99, 235, 0.3) !important;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08) !important;
+    }
+    .visitor-icon-box {
+      width: 24px;
+      height: 24px;
+      background: rgba(37, 99, 235, 0.1);
+      color: #2563EB;
+      font-size: 0.72rem;
+    }
+    [data-entity="KEI"] .visitor-icon-box {
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+    }
+    .visitor-divider {
+      width: 1px;
+      height: 14px;
+      background-color: #CBD5E1;
+      display: inline-block;
+      margin: 0 10px;
+    }
+    [data-theme="dark"] .visitor-telemetry-capsule {
+      background: rgba(15, 23, 42, 0.85) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    [data-theme="dark"] .visitor-divider {
+      background-color: rgba(255, 255, 255, 0.18);
+    }
+
     /* EXECUTIVE ANNOUNCEMENT BROADCAST TICKER BANNER */
     .announcement-ticker-card {
       background: linear-gradient(135deg, rgba(254, 243, 199, 0.9) 0%, rgba(254, 249, 195, 0.95) 100%);
@@ -1318,23 +1356,24 @@
           <div class="small text-slate mt-0.5 mb-2 d-none d-md-block">Konsolidasi laporan progres mingguan divisi sebagai instrumen akuntabilitas kinerja & keputusan strategis pimpinan.</div>
           
           <!-- BARIS KONTROL ELEGAN: TANYA BAGAS + ELEGANT VISITOR CAPSULE (SISI KIRI) -->
-          <div class="d-flex align-items-center flex-wrap gap-2.5 mt-1 mt-md-2">
-            <button class="btn btn-primary fw-bold px-3 py-1.5 rounded-pill shadow-sm d-inline-flex align-items-center gap-2" id="btnTanyaHeader" onclick="openTanyaModal()" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); border: none; font-size: 0.8rem;">
+          <div class="d-flex align-items-center flex-wrap gap-3 mt-1 mt-md-2">
+            <button class="btn btn-primary fw-bold px-3 py-1.5 rounded-pill shadow-sm d-inline-flex align-items-center gap-2" id="btnTanyaHeader" onclick="openTanyaModal()" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); border: none; font-size: 0.8rem; height: 38px;">
               <i class="fas fa-robot text-warning fs-6"></i>
               <span>TANYA BAGAS</span>
             </button>
 
-            <!-- VISITOR TELEMETRY CAPSULE (REPOSITIONED & ISOLATED) -->
-            <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-white border shadow-sm transition-all hover-shadow-md" title="Statistik Kunjungan Aplikasi" style="border-color: rgba(226, 232, 240, 0.9) !important;">
-              <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px;">
-                <i class="fas fa-eye" style="font-size: 0.65rem;"></i>
+            <!-- VISITOR TELEMETRY CAPSULE (EXECUTIVE REDESIGN) -->
+            <div class="visitor-telemetry-capsule d-inline-flex align-items-center px-3 py-1.5 rounded-pill shadow-sm" title="Statistik Kunjungan Aplikasi">
+              <div class="visitor-icon-box rounded-circle d-flex align-items-center justify-content-center me-2">
+                <i class="fas fa-chart-line"></i>
               </div>
-              <div class="d-flex align-items-center gap-1.5 text-navy" style="font-size: 0.75rem; font-family: 'Plus Jakarta Sans', sans-serif;">
-                <span class="fw-800 text-primary" id="visitorTodayCount">0</span>
-                <span class="text-slate fw-600">Hari Ini</span>
-                <span class="text-slate opacity-40 mx-0.5">•</span>
-                <span class="fw-800 text-navy" id="visitorTotalCount">0</span>
-                <span class="text-slate fw-600">Total Visits</span>
+              <div class="d-flex align-items-center text-navy fw-600" style="font-size: 0.78rem; font-family: 'Plus Jakarta Sans', sans-serif;">
+                <span class="text-slate me-1">Hari Ini:</span>
+                <span class="fw-800 text-primary ms-0.5 me-1" id="visitorTodayCount">0</span>
+                <span class="visitor-divider"></span>
+                <span class="text-slate me-1">Total:</span>
+                <span class="fw-800 text-navy ms-0.5 me-1" id="visitorTotalCount">0</span>
+                <span class="text-slate opacity-75" style="font-size: 0.7rem;">Visits</span>
               </div>
             </div>
           </div>
