@@ -2551,7 +2551,7 @@
       const tickerEl = document.getElementById('broadcastTickerText');
       if (tickerEl) {
         const announcements = {
-          EMP: 'Persiapkan Seluruh Kebutuhan Dokumentasi Untuk Menghadapi Audit SMAP 37001 Pada 26 - 28 Agustus 2026',
+          EMP: 'Selamat beraktifitas di Bulan September, semoga sehat selalu dan semakin barokah',
           KEI: 'Selamat Bergabung PT Kangean Energy Indonesia'
         };
         const msg = announcements[currentEntity] || announcements.EMP;
@@ -2863,9 +2863,12 @@
               mapInstance.removeLayer(mapTileLayer);
             }
             const tileUrl = isDark 
-                ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
-                : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-            mapTileLayer = L.tileLayer(tileUrl, { maxZoom: 20, subdomains: 'abcd' }).addTo(mapInstance);
+                ? "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}" 
+                : "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+            mapTileLayer = L.tileLayer(tileUrl, { 
+                attribution: '&copy; Esri &mdash; Esri, DeLorme, NAVTEQ', 
+                maxZoom: 16 
+            }).addTo(mapInstance);
         }
 
         // Force refresh charts so the font colors adapt to the new background
@@ -4770,16 +4773,16 @@
 
         const isDark = document.body.getAttribute('data-theme') === 'dark';
         const tileUrl = isDark 
-            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
-            : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+            ? "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}" 
+            : "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}";
 
         if (mapTileLayer) {
           mapInstance.removeLayer(mapTileLayer);
         }
 
         mapTileLayer = L.tileLayer(tileUrl, {
-          maxZoom: 20,
-          subdomains: 'abcd'
+          attribution: '&copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+          maxZoom: 16
         }).addTo(mapInstance);
 
         markerRegistry = {};
